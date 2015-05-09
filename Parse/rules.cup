@@ -1,0 +1,233 @@
+package Parse;
+
+import java_cup.runtime.DefaultSymbolFactory;
+import Absyn.*;
+
+parser code {:
+	Lexer lexer;
+	public Parser(Lexer l) {
+		lexer=l;
+		this.symbolFactory = new DefaultSymbolFactory();
+	}
+:};
+
+scan with {:
+	java_cup.runtime.Symbol sym = lexer.nextToken();
+    return (sym!=null) ? sym : getSymbolFactory().newSymbol("END_OF_FILE", EOF_sym());
+:};
+
+
+/* Terminal Symbols */
+terminal INT, FLOAT;
+terminal IF, ELSE, RETURN, WHILE, DO, FOR, SWITCH, CASE, DEFAULT, BREAK;
+terminal MULT, DIV, PLUS, MINUS, GT, LT, GTEQ, LTEQ, EQEQ, NOTEQ, EQ;
+terminal LPAREN, RPAREN, LBRACE, RBRACE, LBRACK, RBRACK, SEMICOLON, COLON, COMMA, DOT;
+terminal UMINUS;
+terminal id, intnum, floatnum;
+
+
+/* Non-terminal Symbols */
+non terminal Program;
+non terminal DeclList, FuncList;
+non terminal Declaration;
+non terminal IdentList, identifier;
+non terminal Function, ParamList;
+non terminal Type;
+non terminal StmtList, Stmt, AssignStmt, CallStmt, RetStmt, WhileStmt, ForStmt, IfStmt, SwitchStmt, CompoundStmt;
+non terminal CaseCont, Default;
+non terminal Assign, Call, CaseList, Expr, ArgList;
+
+
+/* Precedence */
+precedence right EQ;
+precedence left EQEQ, NOTEQ;
+precedence left GT, LT, GTEQ, LTEQ;
+precedence left PLUS, MINUS;
+precedence left MULT, DIV;
+precedence left UMINUS;
+precedence left LPAREN, RPAREN;
+
+
+/* Production Rules */
+Program ::=
+	
+		{: System.out.println("Parse succeed with Empty Program!"); :}
+	|	DeclList
+		{: System.out.println("Parse succeed with DeclList Program"); :}
+	|	FuncList
+		{: System.out.println("Parse succeed with FuncList Program"); :}
+	|	DeclList FuncList
+		{: System.out.println("Parse succeed with DeclList+FuncList Program"); :}
+	;
+
+DeclList ::=
+		Declaration
+	|	DeclList Declaration
+	;
+
+FuncList ::=
+		Function
+	|	FuncList Function
+	;
+
+Declaration ::=
+		Type IdentList SEMICOLON
+	;
+
+IdentList ::=
+		identifier:i
+	|	IdentList COMMA identifier
+	;
+
+identifier ::=
+		id
+	|	id LBRACK intnum RBRACK
+	;
+
+Function ::=
+		Type id LPAREN RPAREN CompoundStmt
+	|	Type id LPAREN ParamList RPAREN CompoundStmt
+	;
+
+ParamList ::=
+		Type identifier
+	|	ParamList COMMA Type identifier
+	;
+
+Type ::=
+		INT
+        {: RESULT = new Type(Type.type.INT); :}
+	|	FLOAT
+        {: RESULT = new Type(Type.type.FLOAT); :}
+	;
+
+CompoundStmt ::=
+		LBRACE DeclList:dl StmtList:sl RBRACE
+        {: RESULT = new CompoundStmt((DeclList) dl, (StmtList) sl); :}
+	|	LBRACE StmtList:sl RBRACE
+        {: RESULT = new CompoundStmt((StmtList) sl); :}
+	;
+
+StmtList ::=
+		StmtList:sl Stmt:s
+        {: sl.add((Stmt) s); RESULT = sl; :}
+	|	
+	;
+
+Stmt ::=
+		AssignStmt:stmt
+        {: RESULT = (AssignStmt) stmt; :}
+	|	CallStmt
+	|	RetStmt
+	|	WhileStmt
+	|	ForStmt
+	|	IfStmt
+	|	SwitchStmt
+	|	CompoundStmt
+    |   SEMICOLON
+	;
+
+AssignStmt ::=
+		Assign:a SEMICOLON
+    {: RESULT = (AssignStmt) a; :}
+	;
+
+Assign ::=
+		id:i EQ Expr:e
+        {: RESULT = new AssignStmt(0, (String) i, (Exp) e); :}
+	|	id:i LBRACK Expr:e1 RBRACK EQ Expr:e2
+        {: RESULT = new AssignStmt(0, (String) i, (Exp) e1, (Exp) e2); :}
+	;
+
+CallStmt ::=
+		Call SEMICOLON
+	;
+
+Call ::=
+		id:i LPAREN RPAREN
+	|	id:i LPAREN ArgList:args RPAREN
+	;
+
+RetStmt ::=
+		RETURN Expr SEMICOLON
+	|	RETURN SEMICOLON
+	;
+
+WhileStmt ::=
+		WHILE LPAREN Expr RPAREN Stmt
+	|	DO Stmt WHILE LPAREN Expr RPAREN SEMICOLON
+	;
+
+ForStmt ::=
+		FOR LPAREN Assign SEMICOLON Expr SEMICOLON Assign RPAREN Stmt
+	;
+
+IfStmt ::=
+		IF LPAREN Expr:cond RPAREN Stmt:thenBody
+        {: RESULT = new IfStmt(0, (Exp) cond, (Stmt) thenBody); :}
+    ;
+
+SwitchStmt ::=
+		SWITCH LPAREN identifier RPAREN LBRACE CaseList RBRACE
+	;
+
+CaseList ::=
+		CaseCont Default
+	|	CaseCont
+	|	Default
+	|
+	;
+
+CaseCont ::=
+		CASE intnum COLON StmtList 
+	|	CASE intnum COLON StmtList BREAK SEMICOLON
+	|	CaseCont CASE intnum COLON StmtList 
+	|	CaseCont CASE intnum COLON StmtList BREAK SEMICOLON
+	;
+
+Default ::=
+		DEFAULT COLON StmtList
+	|	DEFAULT COLON StmtList BREAK SEMICOLON
+	;
+
+Expr ::=
+		MINUS Expr
+        %prec UMINUS
+	|	Expr:e1 PLUS Expr:e2
+	{: RESULT = new OpExp(0, (Exp) e1, OpExp.Op.PLUS, (Exp) e2); :}
+	|	Expr:e1 MINUS Expr:e2
+	{: RESULT = new OpExp(0, (Exp) e1, OpExp.Op.MINUS, (Exp) e2); :}
+	|	Expr:e1 MULT Expr:e2
+	{: RESULT = new OpExp(0, (Exp) e1, OpExp.Op.MULT, (Exp) e2); :}
+	|	Expr:e1 DIV Expr:e2
+	{: RESULT = new OpExp(0, (Exp) e1, OpExp.Op.DIV, (Exp) e2); :}
+	|	Expr:e1 GT Expr:e2
+	{: RESULT = new OpExp(0, (Exp) e1, OpExp.Op.GT, (Exp) e2); :}
+	|	Expr:e1 LT Expr:e2
+	{: RESULT = new OpExp(0, (Exp) e1, OpExp.Op.LT, (Exp) e2); :}
+	|	Expr:e1 GTEQ Expr:e2
+	{: RESULT = new OpExp(0, (Exp) e1, OpExp.Op.GTEQ, (Exp) e2); :}
+	|	Expr:e1 LTEQ Expr:e2
+	{: RESULT = new OpExp(0, (Exp) e1, OpExp.Op.LTEQ, (Exp) e2); :}
+	|	Expr:e1 EQEQ Expr:e2
+	{: RESULT = new OpExp(0, (Exp) e1, OpExp.Op.EQEQ, (Exp) e2); :}
+	|	Expr:e1 NOTEQ Expr:e2
+	{: RESULT = new OpExp(0, (Exp) e1, OpExp.Op.NOTEQ, (Exp) e2); :}
+	|	Call:c
+	{: RESULT = (Exp) c; :}
+	|	intnum:i
+	{: RESULT = new IntExp(0, (Integer) i); :}
+	|	floatnum:f
+	{: RESULT = new FloatExp(0, (Float) f); :}
+	|	id:s
+    {: RESULT = new IdExp(0, (String) s); :}
+	|	id:i LBRACK Expr:e RBRACK
+    {: RESULT = new ArrayExp(0, (String) i, (Exp) e); :}
+	|	LPAREN Expr:e RPAREN
+	{: RESULT = (Exp) e; :}
+	;
+
+ArgList ::=
+		Expr
+	|	ArgList COMMA Expr
+	;
