@@ -34,6 +34,7 @@ non terminal IdentList, identifier;
 non terminal Function, ParamList;
 non terminal Type;
 non terminal StmtList, Stmt, AssignStmt, CallStmt, RetStmt, WhileStmt, ForStmt, IfStmt, SwitchStmt, CompoundStmt;
+non terminal OpenStmt, ClosedStmt;
 non terminal CaseCont, Default;
 non terminal Assign, Call, CaseList, Expr, ArgList;
 
@@ -46,6 +47,7 @@ precedence left PLUS, MINUS;
 precedence left MULT, DIV;
 precedence left UMINUS;
 precedence left LPAREN, RPAREN;
+precedence right ELSE;
 
 
 /* Production Rules */
@@ -119,7 +121,7 @@ Type ::=
 
 CompoundStmt ::=
 		LBRACE DeclList:dl StmtList:sl RBRACE
-        {: RESULT = new CompoundStmt((DeclList) dl, (StmtList) dl); :}
+        {: RESULT = new CompoundStmt((DeclList) dl, (StmtList) sl); :}
 	|	LBRACE StmtList:sl RBRACE
         {: RESULT = new CompoundStmt((StmtList) sl); :}
 	;
@@ -132,6 +134,19 @@ StmtList ::=
 	;
 
 Stmt ::=
+        OpenStmt
+    |   ClosedStmt
+    ;
+
+OpenStmt ::=
+		IF LPAREN Expr:cond RPAREN Stmt:thenBody
+		{: RESULT = new IfStmt(0, (Exp) cond, (Stmt) thenBody); :}
+    |   IF LPAREN Expr:cond RPAREN ClosedStmt:thenBody ELSE OpenStmt:elseBody
+    ;
+
+ClosedStmt ::=
+        IF LPAREN Expr:cond RPAREN ClosedStmt ELSE ClosedStmt
+    |
 		AssignStmt:stmt
         {: RESULT = (Stmt) stmt; :}
 	|	CallStmt:stmt
@@ -141,8 +156,6 @@ Stmt ::=
 	|	WhileStmt:stmt
         {: RESULT = (Stmt) stmt; :}
 	|	ForStmt:stmt
-        {: RESULT = (Stmt) stmt; :}
-	|	IfStmt:stmt
         {: RESULT = (Stmt) stmt; :}
 	|	SwitchStmt:stmt
         {: RESULT = (Stmt) stmt; :}
@@ -193,11 +206,6 @@ WhileStmt ::=
 ForStmt ::=
 		FOR LPAREN Assign:pre SEMICOLON Expr:cond SEMICOLON Assign:post RPAREN Stmt:body
 	;
-
-IfStmt ::=
-		IF LPAREN Expr:cond RPAREN Stmt:thenBody
-		{: RESULT = new IfStmt(0, (Exp) cond, (Stmt) thenBody); :}
-    ;
 
 SwitchStmt ::=
 		SWITCH LPAREN identifier RPAREN LBRACE CaseList RBRACE

@@ -3,8 +3,7 @@ package Parse;
 import java.io.BufferedReader;
 import java.io.FileReader;
 
-import Absyn.Function;
-import Absyn.Program;
+import Absyn.*;
 
 public class Main {
 
@@ -14,7 +13,7 @@ public class Main {
 		if (argv.length > 0)
 			filename = argv[0];
 		else
-			filename = "input.txt";
+			filename = "input";
 
 		System.out.println("--- Start MiniC Java Compiler! ---");
 
@@ -26,7 +25,9 @@ public class Main {
 		Parser p = new Parser(new Lexer(in));
 		/* open input files, etc. here */
 		Program a = (Program) p.parse().value;
-		Function f = a.flist.list.get(0);
-		System.out.println(f.id);
+		for (int i=0; i<a.flist.list.size(); i++) {
+			Function f = a.flist.list.get(i);
+			System.out.println(f.id);
+		}
 	}
 }

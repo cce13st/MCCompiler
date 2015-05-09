@@ -1,4 +1,15 @@
 int main() {
     if (1)
         a = 1;
+    else 
+        a = 2;
+}
+
+float a1() {
+    asdf = asdf;
+}
+
+float a2() {
+    v = d();
+    return;
 }
