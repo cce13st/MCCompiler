@@ -4,13 +4,13 @@ import java.util.ArrayList;
 
 public class DeclList{
 	public int length;
-	public ArrayList<Stmt> list = new ArrayList<Stmt>();
+	public ArrayList<Decl> list = new ArrayList<Decl>();
 
 	public DeclList() {
 		length = 0;
 	}
 	
-	public void add(Stmt s) {
+	public void add(Decl s) {
 		length++;
 		list.add(s);
 	}

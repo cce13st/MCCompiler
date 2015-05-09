@@ -50,48 +50,64 @@ precedence left LPAREN, RPAREN;
 
 /* Production Rules */
 Program ::=
-	
-		{: System.out.println("Parse succeed with Empty Program!"); :}
-	|	DeclList
-		{: System.out.println("Parse succeed with DeclList Program"); :}
-	|	FuncList
-		{: System.out.println("Parse succeed with FuncList Program"); :}
-	|	DeclList FuncList
-		{: System.out.println("Parse succeed with DeclList+FuncList Program"); :}
+		{: System.out.println("Parse succeed with Empty Program!"); 
+		RESULT = new Program(null, null); :}
+	|	DeclList:dl
+		{: System.out.println("Parse succeed with DeclList Program"); 
+		RESULT = new Program((DeclList) dl, null); :}
+	|	FuncList:fl
+		{: System.out.println("Parse succeed with FuncList Program"); 
+		RESULT = new Program(null, (FuncList) fl); :}
+	|	DeclList:dl FuncList:fl
+		{: System.out.println("Parse succeed with DeclList+FuncList Program"); 
+		RESULT = new Program((DeclList) dl, (FuncList) fl); :}
 	;
 
 DeclList ::=
-		Declaration
-	|	DeclList Declaration
+		Declaration:d
+		{: DeclList dl = new DeclList(); dl.add((Decl) d); RESULT = dl; :}
+	|	DeclList:dl Declaration:d
+		{: ((DeclList) dl).add((Decl) d); RESULT = dl; :}
 	;
 
 FuncList ::=
-		Function
-	|	FuncList Function
+		Function:f
+		{: FuncList fl = new FuncList(); fl.add((Function) f); RESULT = fl; :}
+	|	FuncList:fl Function:f
+		{: ((FuncList) fl).add((Function) f); RESULT = fl; :}
 	;
 
 Declaration ::=
-		Type IdentList SEMICOLON
+		Type:t IdentList:il SEMICOLON
+		{: RESULT = new Decl(0, (Type) t, (IdentList) il); :}
 	;
 
 IdentList ::=
 		identifier:i
-	|	IdentList COMMA identifier
+		{: IdentList il = new IdentList(); il.add((Identifier) i); RESULT = il; :}
+	|	IdentList:il COMMA identifier:i
+		{: ((IdentList) il).add((Identifier) i); RESULT = il; :}
 	;
 
 identifier ::=
-		id
-	|	id LBRACK intnum RBRACK
+		id:i
+		{: RESULT = new Identifier(0, (String) i); :}
+	|	id:i LBRACK intnum:i2 RBRACK
+		{: RESULT = new Identifier(0, (String) i, (Integer) i2); :}
 	;
 
 Function ::=
-		Type id LPAREN RPAREN CompoundStmt
-	|	Type id LPAREN ParamList RPAREN CompoundStmt
+		Type:t id:i LPAREN RPAREN CompoundStmt:cs
+		{: RESULT = new Function(0, (Type) t, (String) i, (CompoundStmt) cs); :}
+	|	Type:t id:i LPAREN ParamList:pl RPAREN CompoundStmt:cs
+		{: RESULT = new Function(0, (Type) t, (String) i, (ParamList) pl, (CompoundStmt) cs); :}
 	;
 
 ParamList ::=
-		Type identifier
-	|	ParamList COMMA Type identifier
+		Type:t identifier:i
+		{: ParamList pl = new ParamList(); pl.add((Type) t, (Identifier) i); RESULT = pl; :}
+	|	ParamList:pl COMMA Type:t identifier:i
+		{: ((ParamList) pl).add((Type) t, (Identifier) i); RESULT = pl; :}
 	;
 
 Type ::=
@@ -103,68 +119,84 @@ Type ::=
 
 CompoundStmt ::=
 		LBRACE DeclList:dl StmtList:sl RBRACE
-        {: RESULT = new CompoundStmt((DeclList) dl, (StmtList) sl); :}
+        {: RESULT = new CompoundStmt((DeclList) dl, (StmtList) dl); :}
 	|	LBRACE StmtList:sl RBRACE
         {: RESULT = new CompoundStmt((StmtList) sl); :}
 	;
 
 StmtList ::=
 		StmtList:sl Stmt:s
-        {: sl.add((Stmt) s); RESULT = sl; :}
+        {: ((StmtList) sl).add((Stmt) s); RESULT = (StmtList) sl; :}
 	|	
+        {: RESULT = new StmtList(); :}
 	;
 
 Stmt ::=
 		AssignStmt:stmt
-        {: RESULT = (AssignStmt) stmt; :}
-	|	CallStmt
-	|	RetStmt
-	|	WhileStmt
-	|	ForStmt
-	|	IfStmt
-	|	SwitchStmt
-	|	CompoundStmt
+        {: RESULT = (Stmt) stmt; :}
+	|	CallStmt:stmt
+        {: RESULT = (Stmt) stmt; :}
+	|	RetStmt:stmt
+        {: RESULT = (Stmt) stmt; :}
+	|	WhileStmt:stmt
+        {: RESULT = (Stmt) stmt; :}
+	|	ForStmt:stmt
+        {: RESULT = (Stmt) stmt; :}
+	|	IfStmt:stmt
+        {: RESULT = (Stmt) stmt; :}
+	|	SwitchStmt:stmt
+        {: RESULT = (Stmt) stmt; :}
+	|	CompoundStmt:stmt
+        {: RESULT = (Stmt) stmt; :}
     |   SEMICOLON
+        {: RESULT = new EmptyStmt(0); :}
 	;
 
 AssignStmt ::=
 		Assign:a SEMICOLON
-    {: RESULT = (AssignStmt) a; :}
+    	{: RESULT = new AssignStmt(0, (Assign) a); :}
 	;
 
 Assign ::=
 		id:i EQ Expr:e
-        {: RESULT = new AssignStmt(0, (String) i, (Exp) e); :}
+        {: RESULT = new Assign(0, (String) i, (Exp) e); :}
 	|	id:i LBRACK Expr:e1 RBRACK EQ Expr:e2
-        {: RESULT = new AssignStmt(0, (String) i, (Exp) e1, (Exp) e2); :}
+        {: RESULT = new Assign(0, (String) i, (Exp) e1, (Exp) e2); :}
 	;
 
 CallStmt ::=
-		Call SEMICOLON
+		Call:e SEMICOLON
+		{: RESULT = new CallStmt(0, (CallExp) e); :}
 	;
 
 Call ::=
 		id:i LPAREN RPAREN
+		{: RESULT = new CallExp(0, (String) i); :}
 	|	id:i LPAREN ArgList:args RPAREN
+		{: RESULT = new CallExp(0, (String) i, (ArgList) args); :}
 	;
 
 RetStmt ::=
-		RETURN Expr SEMICOLON
+		RETURN Expr:e SEMICOLON
+		{: RESULT = new RetStmt(0, (Exp) e); :}
 	|	RETURN SEMICOLON
+		{: RESULT = new RetStmt(0); :}
 	;
 
 WhileStmt ::=
-		WHILE LPAREN Expr RPAREN Stmt
-	|	DO Stmt WHILE LPAREN Expr RPAREN SEMICOLON
+		WHILE LPAREN Expr:cond RPAREN Stmt:body
+		{: RESULT = new WhileStmt(0, (Exp) cond, (Stmt) body, false); :}
+	|	DO Stmt:body WHILE LPAREN Expr:cond RPAREN SEMICOLON
+		{: RESULT = new WhileStmt(0, (Exp) cond, (Stmt) body, true); :}
 	;
 
 ForStmt ::=
-		FOR LPAREN Assign SEMICOLON Expr SEMICOLON Assign RPAREN Stmt
+		FOR LPAREN Assign:pre SEMICOLON Expr:cond SEMICOLON Assign:post RPAREN Stmt:body
 	;
 
 IfStmt ::=
 		IF LPAREN Expr:cond RPAREN Stmt:thenBody
-        {: RESULT = new IfStmt(0, (Exp) cond, (Stmt) thenBody); :}
+		{: RESULT = new IfStmt(0, (Exp) cond, (Stmt) thenBody); :}
     ;
 
 SwitchStmt ::=
@@ -191,43 +223,46 @@ Default ::=
 	;
 
 Expr ::=
-		MINUS Expr
+		MINUS Expr:e
+		{: RESULT = new UnOpExp(0, UnOpExp.Op.MINUS, (Exp) e); :}
         %prec UMINUS
 	|	Expr:e1 PLUS Expr:e2
-	{: RESULT = new OpExp(0, (Exp) e1, OpExp.Op.PLUS, (Exp) e2); :}
+		{: RESULT = new BinOpExp(0, (Exp) e1, BinOpExp.Op.PLUS, (Exp) e2); :}
 	|	Expr:e1 MINUS Expr:e2
-	{: RESULT = new OpExp(0, (Exp) e1, OpExp.Op.MINUS, (Exp) e2); :}
+		{: RESULT = new BinOpExp(0, (Exp) e1, BinOpExp.Op.MINUS, (Exp) e2); :}
 	|	Expr:e1 MULT Expr:e2
-	{: RESULT = new OpExp(0, (Exp) e1, OpExp.Op.MULT, (Exp) e2); :}
+		{: RESULT = new BinOpExp(0, (Exp) e1, BinOpExp.Op.MULT, (Exp) e2); :}
 	|	Expr:e1 DIV Expr:e2
-	{: RESULT = new OpExp(0, (Exp) e1, OpExp.Op.DIV, (Exp) e2); :}
+		{: RESULT = new BinOpExp(0, (Exp) e1, BinOpExp.Op.DIV, (Exp) e2); :}
 	|	Expr:e1 GT Expr:e2
-	{: RESULT = new OpExp(0, (Exp) e1, OpExp.Op.GT, (Exp) e2); :}
+		{: RESULT = new BinOpExp(0, (Exp) e1, BinOpExp.Op.GT, (Exp) e2); :}
 	|	Expr:e1 LT Expr:e2
-	{: RESULT = new OpExp(0, (Exp) e1, OpExp.Op.LT, (Exp) e2); :}
+		{: RESULT = new BinOpExp(0, (Exp) e1, BinOpExp.Op.LT, (Exp) e2); :}
 	|	Expr:e1 GTEQ Expr:e2
-	{: RESULT = new OpExp(0, (Exp) e1, OpExp.Op.GTEQ, (Exp) e2); :}
+		{: RESULT = new BinOpExp(0, (Exp) e1, BinOpExp.Op.GTEQ, (Exp) e2); :}
 	|	Expr:e1 LTEQ Expr:e2
-	{: RESULT = new OpExp(0, (Exp) e1, OpExp.Op.LTEQ, (Exp) e2); :}
+		{: RESULT = new BinOpExp(0, (Exp) e1, BinOpExp.Op.LTEQ, (Exp) e2); :}
 	|	Expr:e1 EQEQ Expr:e2
-	{: RESULT = new OpExp(0, (Exp) e1, OpExp.Op.EQEQ, (Exp) e2); :}
+		{: RESULT = new BinOpExp(0, (Exp) e1, BinOpExp.Op.EQEQ, (Exp) e2); :}
 	|	Expr:e1 NOTEQ Expr:e2
-	{: RESULT = new OpExp(0, (Exp) e1, OpExp.Op.NOTEQ, (Exp) e2); :}
+		{: RESULT = new BinOpExp(0, (Exp) e1, BinOpExp.Op.NOTEQ, (Exp) e2); :}
 	|	Call:c
-	{: RESULT = (Exp) c; :}
+		{: RESULT = (Exp) c; :}
 	|	intnum:i
-	{: RESULT = new IntExp(0, (Integer) i); :}
+		{: RESULT = new IntExp(0, (Integer) i); :}
 	|	floatnum:f
-	{: RESULT = new FloatExp(0, (Float) f); :}
+		{: RESULT = new FloatExp(0, (Float) f); :}
 	|	id:s
-    {: RESULT = new IdExp(0, (String) s); :}
+    	{: RESULT = new IdExp(0, (String) s); :}
 	|	id:i LBRACK Expr:e RBRACK
-    {: RESULT = new ArrayExp(0, (String) i, (Exp) e); :}
+    	{: RESULT = new ArrayExp(0, (String) i, (Exp) e); :}
 	|	LPAREN Expr:e RPAREN
-	{: RESULT = (Exp) e; :}
+		{: RESULT = (Exp) e; :}
 	;
 
 ArgList ::=
-		Expr
-	|	ArgList COMMA Expr
+		Expr:e
+        {: ArgList al = new ArgList(); al.add((Exp) e); RESULT = al; :}
+	|	ArgList:al COMMA Expr:e
+        {: ((ArgList) al).add((Exp) e); RESULT = (ArgList) al; :}
 	;

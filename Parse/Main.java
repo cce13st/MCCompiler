@@ -3,6 +3,9 @@ package Parse;
 import java.io.BufferedReader;
 import java.io.FileReader;
 
+import Absyn.Function;
+import Absyn.Program;
+
 public class Main {
 
 	public static void main(String argv[]) throws Exception {
@@ -22,7 +25,8 @@ public class Main {
 		
 		Parser p = new Parser(new Lexer(in));
 		/* open input files, etc. here */
-
-		p.parse();
+		Program a = (Program) p.parse().value;
+		Function f = a.flist.list.get(0);
+		System.out.println(f.id);
 	}
 }

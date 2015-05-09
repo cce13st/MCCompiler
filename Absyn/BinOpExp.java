@@ -1,10 +1,10 @@
 package Absyn;
 
-public class OpExp extends Exp {
+public class BinOpExp extends Exp {
 	public Exp left, right;
 	public Op oper;
 
-	public OpExp(int p, Exp l, Op o, Exp r) {
+	public BinOpExp(int p, Exp l, Op o, Exp r) {
 		pos = p;
 		left = l;
 		oper = o;
