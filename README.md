@@ -13,8 +13,10 @@ You can build the whole project by 'make' command.
 2. Executing the MiniC parser
 Execute the main java class with CUP library on root directory of the project. 'libs' directory already contains CUP library, so you just need this command.
 > java -cp libs/java-cup-11a.jar: Parse/Main
+
 This command execute parser with '/input.txt' as input.
 
 You can pass another file as an argument of the parser.
 > java -cp libs/java-cup-11a.jar: Parse/Main your_test_file
+
 Replace 'your_test_file' to anything you want.
