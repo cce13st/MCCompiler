@@ -39,6 +39,8 @@ public class Visitor {
 	}
 	
 	public void visit(Exp e) {
+		if (e.paren)
+			System.out.print("(");
 		if (e instanceof ArrayExp) {
 			ArrayExp a = (ArrayExp) e;
 			System.out.print(a.s);
@@ -47,11 +49,9 @@ public class Visitor {
 		}
 		else if (e instanceof BinOpExp) {
 			BinOpExp b = (BinOpExp) e;
-			System.out.print("(");
 			visit(b.left);
 			System.out.print(" " + b.getOp() + " ");
 			visit(b.right);
-			System.out.print(")");
 		}
 		else if (e instanceof CallExp) {
 			CallExp c = (CallExp) e;
@@ -76,6 +76,8 @@ public class Visitor {
 			System.out.print("-");
 			visit(u.exp);
 		}
+		if (e.paren)
+			System.out.print(")");
 	}
 	
 	public void visit(Stmt s) {

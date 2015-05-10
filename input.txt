@@ -7,7 +7,7 @@ int main() {
     if (2 > 0)
     if (1 > 0){
         float my;
-        a = 1;
+        a = 1 * (2 + 3);
     }
     else 
         a = 2;

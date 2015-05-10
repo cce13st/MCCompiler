@@ -277,7 +277,7 @@ Expr ::=
 	|	id:i LBRACK Expr:e RBRACK
     	{: RESULT = new ArrayExp(0, (String) i, (Exp) e); :}
 	|	LPAREN Expr:e RPAREN
-		{: RESULT = (Exp) e; :}
+		{: Exp expr = (Exp) e; expr.paren = true; RESULT = (Exp) expr; :}
 	;
 
 ArgList ::=

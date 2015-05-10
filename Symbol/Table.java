@@ -29,7 +29,7 @@ public class Table {
 		}
 		
 		System.out.println("Function name : " + s.getLocName());
-		System.out.println("----------------------------");
+		System.out.println("-------------------------------------------------");
 		
 		int cnt = 1;
 		
