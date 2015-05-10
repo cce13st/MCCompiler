@@ -16,6 +16,9 @@ public class Visitor {
 		DeclList dl = p.dlist;
 		FuncList fl = p.flist;
 		if (dl != null) visit(dl);
+		
+		System.out.println("");
+		
 		if (fl != null) visit(fl);
 	}
 	
@@ -80,7 +83,7 @@ public class Visitor {
 			System.out.print(")");
 	}
 	
-	public void visit(Stmt s) {
+	public void visit(Stmt s, boolean block) {
 		if (s instanceof AssignStmt) {
 			AssignStmt a = (AssignStmt) s;
 			visit(a.assign);
@@ -93,8 +96,12 @@ public class Visitor {
 		}
 		else if (s instanceof CompoundStmt) {
 			CompoundStmt c = (CompoundStmt) s;
+			if (block)
+				System.out.println("{");
 			if (c.dlist != null) visit(c.dlist);
 			if (c.slist != null) visit(c.slist);
+			if (block)
+				System.out.println("}");
 		}
 		else if (s instanceof EmptyStmt) {
 			System.out.println(";");
@@ -108,7 +115,7 @@ public class Visitor {
 			System.out.print("; ");
 			visit(f.post);
 			System.out.println(") {");
-			visit(f.body);
+			visit(f.body, false);
 			System.out.println("}");
 		}
 		else if (s instanceof IfStmt) {
@@ -116,11 +123,11 @@ public class Visitor {
 			System.out.print("if (");
 			visit(i.cond);
 			System.out.println(") {");
-			visit(i.thenClause);
+			visit(i.thenClause, false);
 			System.out.println("}");
 			if (i.elseClause != null) {
 				System.out.println("else {");
-				visit (i.elseClause);
+				visit (i.elseClause, false);
 				System.out.println("}");
 			}
 		}
@@ -136,7 +143,7 @@ public class Visitor {
 			WhileStmt w = (WhileStmt) s;
 			if (w.doWhile) {
 				System.out.println("do {");
-				visit(w.body);
+				visit(w.body, false);
 				System.out.print("} while (");
 				visit(w.cond);
 				System.out.println(")");
@@ -145,7 +152,7 @@ public class Visitor {
 				System.out.print("while (");
 				visit(w.cond);
 				System.out.println(") {");
-				visit(w.body);
+				visit(w.body, false);
 				System.out.println("}");
 			}
 		}
@@ -178,7 +185,7 @@ public class Visitor {
 	/* StmtList */
 	public void visit(StmtList sl) {
 		for(int i=0; i<sl.length; i++) {
-			visit((Stmt) sl.get(i));
+			visit((Stmt) sl.get(i), true);
 		}
 	}
 	
@@ -219,9 +226,9 @@ public class Visitor {
 		visit(f.type);
 		System.out.print(f.id + "(");
 		if (f.paramList != null) visit(f.paramList);
-		System.out.println(")\n{");
-		visit(f.compoundStmt);
-		System.out.println("}\n");
+		System.out.println(")");
+		visit(f.compoundStmt, true);
+		System.out.println("\n");
 	}
 	
 	public void visit(ParamList pl) {
