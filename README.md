@@ -1,10 +1,11 @@
 Project root : MCJavaCompiler/
 Project have 5 directories
- - Absyn : Unused now
+ - Absyn : Node classes for AST
  - ErrorMsg : Unused now
  - Parse : This directory has 'Main' class for execution and lexer/parser classes.
- - Symbol : Unused now
+ - Symbol : Symbol, symbol table, and its interfaces
  - libs : It has library files, JFlex and CUP.
+
 
 1. Building the project
 'Makefile' contains build sequence.
