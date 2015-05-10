@@ -1,7 +1,11 @@
 JFLAGS=-g
 
-Parse/Main.class: Parse/*.java Parse/Parser.java Parse/sym.java Parse/ Parse/Lexer.java Absyn/*.java
-		javac -cp libs/java-cup-11a.jar ${JFLAGS} Parse/*.java
+Parse/Main.class: Absyn/*.java Parse/*.java Parse/Parser.java Parse/sym.java Parse/ Parse/Lexer.java
+		javac -cp .:libs/java-cup-11a.jar ${JFLAGS} Parse/*.java
+
+Absyn/Absyn.class : Absyn/*.java
+		javac ${JFLAGS} Absyn/*.java
+
 
 Parse/Parser.java: Parse/rules.cup
 		java -jar libs/java-cup-11a.jar -parser Parser Parse/rules.cup;
@@ -16,9 +20,6 @@ ErrorMsg/ErrorMsg.class:  ErrorMsg/*.java
 
 Symbol/Symbol.class : Symbol/*.java
 		javac ${JFLAGS} Symbol/*.java
-
-Absyn/Absyn.class : Absyn/*.java
-		javac ${JFLAGS} Absyn/*.java
 
 clean :
 		rm -rf Absyn/*.class Symbol/*.class Parse/*.class; rm Parse/parser.java; rm Parse/sym.java; rm Parse/Lexer.java

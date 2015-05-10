@@ -1,0 +1,33 @@
+int main() {
+	float flt;
+	float fltArr[4];
+	int rrr;
+
+	flt = 11;
+
+	flt = flt / 2;
+	flt = flt * 2;
+	flt = flt - 2;
+	flt = flt + 2;
+	
+	flt = flt / 2.2;
+	flt = flt * 2.2;
+	flt = flt - 2.2;
+	flt = flt + 2.2;
+
+	flt = flt / flt;
+	flt = flt * -flt;
+	flt = flt - flt;
+	flt = flt + -flt;
+
+	rrr = flt > 1.11 * 1234;
+
+	for (rrr = 0; rrr < 4; rrr = rrr + 1) {
+		fltArr[rrr] = rrr + 4;
+		fltArr[rrr] = 0.333 + fltArr[rrr];
+		if (fltArr[rrr] < 0)
+			return;
+	}
+
+	return 0;
+}

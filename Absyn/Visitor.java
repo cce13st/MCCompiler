@@ -193,7 +193,7 @@ public class Visitor {
 	}
 	
 	public void visit(Type t) {
-		System.out.print(t.ty.toString() + " ");
+		System.out.print(t.ty.toString().toLowerCase() + " ");
 	}
 	
 	public void visit(IdentList il) {

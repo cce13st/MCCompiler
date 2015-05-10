@@ -1,10 +1,10 @@
 package Symbol;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 
 public class Scope {
-	public HashMap<String, Symbol> map;
+	public LinkedHashMap<String, Symbol> map;
 	public Scope outer;
 	public String loc;
 	public boolean isFunc;
@@ -16,7 +16,7 @@ public class Scope {
 	public int comnum = 0;
 
 	public Scope(Scope out, String l, boolean isF) {
-		map = new HashMap<String, Symbol>();
+		map = new LinkedHashMap<String, Symbol>();
 		descend = new ArrayList<Scope>();
 		outer = out;
 		if (out != null)

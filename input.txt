@@ -14,11 +14,13 @@ int main() {
 }
 
 float a1(int a, int b, float c) {
+    int a, b;
     int x, y;
     x = y;
 }
 
 float a2() {
+    int var;
     v = d(2, 3, 4+4);
     return 0; 
 }
