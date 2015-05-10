@@ -11,7 +11,7 @@ import Symbol.Table;
 
 public class Main {
 
-	static private final String treeOut = "tree.c";
+	static private final String treeOut = "tree.txt";
 	static private final String tableOut = "table.txt";
 
 	public static void main(String argv[]) throws Exception {

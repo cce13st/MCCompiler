@@ -8,14 +8,16 @@ import java_cup.runtime.*;
 %class Lexer
 %function nextToken
 %type java_cup.runtime.Symbol
+%line
+%column
 
 %{
 	private Symbol symbol(int type) {
-		return new Symbol(type);
+		return new Symbol(type, yyline+1, yycolumn+1);
 	}
 
 	private Symbol symbol(int type, Object value) {
-		return new Symbol(type, value);
+		return new Symbol(type, yyline+1, yycolumn+1, value);
 	}
 %}
 

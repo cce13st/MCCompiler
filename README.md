@@ -21,3 +21,6 @@ You can pass another file as an argument of the parser.
 > java -cp libs/java-cup-11a.jar: Parse/Main your_test_file
 
 Replace 'your_test_file' to anything you want.
+
+At the end of parsing, parser generates 2 files as a result.
+One is "tree.txt", which is miniC code from visiting AST. Another is "table.txt", symbol table for given code.
