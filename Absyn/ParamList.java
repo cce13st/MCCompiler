@@ -16,4 +16,12 @@ public class ParamList{
 		tlist.add(t);
 		ilist.add(i);
 	}
+	
+	public Type getType(int i) {
+		return tlist.get(i);
+	}
+	
+	public Identifier getIdentifier(int i) {
+		return ilist.get(i);
+	}
 }

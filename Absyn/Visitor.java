@@ -15,15 +15,15 @@ public class Visitor {
 	public void visit(Program p) {
 		DeclList dl = p.dlist;
 		FuncList fl = p.flist;
-		visit(dl);
-		visit(fl);
+		if (dl != null) visit(dl);
+		if (fl != null) visit(fl);
 	}
 	
 	public void visit(ArgList al) {
 		for (int i=0; i<al.length; i++) {
 			if (i > 0)
 				System.out.print(", ");
-			visit((Exp) al.list.get(i));
+			visit((Exp) al.get(i));
 		}
 	}
 	
@@ -158,7 +158,7 @@ public class Visitor {
 	
 	public void visit(CaseList cl) {
 		for (int i=0; i<cl.length; i++) {
-			Case c = cl.clist.get(i);
+			Case c = cl.get(i);
 			if (c instanceof DefaultCase) {
 				System.out.println("default:");
 				visit(c.slist);
@@ -175,7 +175,7 @@ public class Visitor {
 	/* StmtList */
 	public void visit(StmtList sl) {
 		for(int i=0; i<sl.length; i++) {
-			visit((Stmt) sl.list.get(i));
+			visit((Stmt) sl.get(i));
 		}
 	}
 	
@@ -187,7 +187,7 @@ public class Visitor {
 	
 	public void visit(DeclList dl) {
 		for(int i=0; i<dl.length; i++) {
-			visit((Decl) dl.list.get(i));
+			visit((Decl) dl.get(i));
 			System.out.println(";");
 		}
 	}
@@ -200,7 +200,7 @@ public class Visitor {
 		for(int i=0; i<il.length; i++) {
 			if (i > 0)
 				System.out.print(", ");
-			visit(il.list.get(i));
+			visit(il.get(i));
 		}
 	}
 	
@@ -225,14 +225,14 @@ public class Visitor {
 		for(int i=0; i<pl.length; i++) {
 			if (i > 0)
 				System.out.print(", ");
-			visit(pl.tlist.get(i));
-			visit(pl.ilist.get(i));
+			visit(pl.getType(i));
+			visit(pl.getIdentifier(i));
 		}
 	}
 	
 	public void visit(FuncList fl) {
 		for(int i=0; i<fl.length; i++) {
-			visit(fl.list.get(i));
+			visit(fl.get(i));
 		}
 	}
 }

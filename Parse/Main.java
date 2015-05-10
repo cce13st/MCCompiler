@@ -13,7 +13,7 @@ public class Main {
 		if (argv.length > 0)
 			filename = argv[0];
 		else
-			filename = "3";
+			filename = "input.txt";
 
 		System.out.println("--- Start MiniC Java Compiler! ---");
 
