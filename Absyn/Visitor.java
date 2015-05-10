@@ -8,7 +8,7 @@ public class Visitor {
 		root = p;
 	}
 	
-	public void startVisit() {
+	public void printAST() {
 		visit(root);
 	}
 	

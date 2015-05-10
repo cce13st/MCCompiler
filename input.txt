@@ -1,13 +1,21 @@
+int a,b,c;
+float x,y,z,w,a;
+
 int main() {
+    int xzy[1];
+    float sdfasdf[1523];
     if (2 > 0)
-    if (1 > 0)
+    if (1 > 0){
+        float my;
         a = 1;
+    }
     else 
         a = 2;
 }
 
 float a1(int a, int b, float c) {
-    asdf = asdf;
+    int x, y;
+    x = y;
 }
 
 float a2() {

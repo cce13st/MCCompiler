@@ -4,14 +4,14 @@ import Symbol.Symbol;
 
 public class Function extends Absyn {
 	public Type type;
-	public Symbol id;
+	public String id;
 	public ParamList paramList;
 	public CompoundStmt compoundStmt;
 	
 	public Function(int p, Type t, String i, ParamList pl, CompoundStmt cs) {
 		pos = p;
 		type = t;
-		id = Symbol.newSymbol(i);
+		id = i;
 		paramList = pl;
 		compoundStmt = cs;
 	}
@@ -19,7 +19,7 @@ public class Function extends Absyn {
 	public Function(int p, Type t, String i, CompoundStmt cs) {
 		pos = p;
 		type = t;
-		id = Symbol.newSymbol(i);
+		id = i;
 		compoundStmt = cs;
 	}
 }

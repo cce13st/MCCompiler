@@ -1,30 +1,33 @@
 package Symbol;
 
-public class Symbol {
-	private String name;
+import Absyn.Type;
 
-	private Symbol(String n) {
+public class Symbol {
+	public boolean init;
+	public Type.type type;
+	public String name;
+	public int array;
+	public boolean var;
+	
+	public static Symbol newSymbol(String n) {
+		return new Symbol(n);
+	}
+	
+	public Symbol(String n) {
 		name = n;
+		init = false;
 	}
 
-	private static java.util.Dictionary dict = new java.util.Hashtable();
-
+	public Symbol(Type.type t, String n, int size, boolean v) {
+		type = t;
+		name = n;
+		array = size;
+		var = v;
+		
+		init = true;
+	}
+	
 	public String toString() {
 		return name;
-	}
-
-	/**
-	 * Make return the unique symbol associated with a string. Repeated calls to
-	 * <tt>symbol("abc")</tt> will return the same Symbol.
-	 */
-
-	public static Symbol newSymbol(String n) {
-		String u = n.intern();
-		Symbol s = (Symbol) dict.get(u);
-		if (s == null) {
-			s = new Symbol(u);
-			dict.put(u, s);
-		}
-		return s;
 	}
 }
