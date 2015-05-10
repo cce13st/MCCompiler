@@ -10,10 +10,10 @@ public class Scope {
 	public boolean isFunc;
 	public ArrayList<Scope> descend;
 	
-	public int ifnum = 0;
-	public int whilenum = 0;
-	public int fornum = 0;
-	public int comnum = 0;
+	public int ifnum = 1;
+	public int whilenum = 1;
+	public int fornum = 1;
+	public int comnum = 1;
 
 	public Scope(Scope out, String l, boolean isF) {
 		map = new LinkedHashMap<String, Symbol>();
@@ -38,20 +38,20 @@ public class Scope {
 		else
 			name = "else(";
 		
-		Scope s = new Scope(this, name + this.fornum + ")", false);
-		this.fornum++;
+		Scope s = new Scope(this, name + this.ifnum + ")", false);
+		this.ifnum++;
 		return s;
 	}
 
 	public Scope newCompoundScope() {
-		Scope s = new Scope(this, "compound(" + this.fornum + ")", false);
-		this.fornum++;
+		Scope s = new Scope(this, "compound(" + this.comnum + ")", false);
+		this.comnum++;
 		return s;
 	}
 	
 	public Scope newWhileScope() {
-		Scope s = new Scope(this, "while(" + this.fornum + ")", false);
-		this.fornum++;
+		Scope s = new Scope(this, "while(" + this.whilenum + ")", false);
+		this.whilenum++;
 		return s;
 	}
 
@@ -75,6 +75,7 @@ public class Scope {
 	public String getLocName() {
 		String locName = loc;
 		Scope current = this;
+		
 		while(!current.isFunc) {
 			current = current.outer;
 			if (current.loc == "GLOBAL")

@@ -167,7 +167,7 @@ ClosedStmt ::=
 	|	SwitchStmt:stmt
         {: RESULT = (Stmt) stmt; :}
 	|	CompoundStmt:stmt
-        {: RESULT = (Stmt) stmt; :}
+        {: RESULT = stmt; :}
     |   SEMICOLON
         {: RESULT = new EmptyStmt(0); :}
 	;

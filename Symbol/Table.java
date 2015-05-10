@@ -1,7 +1,6 @@
 package Symbol;
 
 import java.util.Set;
-
 import Absyn.Program;
 
 public class Table {
@@ -35,12 +34,19 @@ public class Table {
 		
 		for (String key : s.map.keySet()) {
 			Symbol sym = s.map.get(key);
-			System.out.print(cnt + "\t" + key + "\t" + sym.type.toString() + "\t\t" + sym.array + "\t");
+			String arrayStr;
+			
+			if (sym.array == 0)
+				arrayStr = "   ";
+			else
+				arrayStr = sym.array + "";
+				
+			System.out.print(cnt + "\t" + key + "\t" + sym.type.toString() + "\t\t" + arrayStr + "\t");
 			if(sym.var)
 				System.out.println("variable");
 			else
 				System.out.println("parameter");
-			cnt ++;
+			cnt++;
 		}
 		System.out.println("");
 		

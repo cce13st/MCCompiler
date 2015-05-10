@@ -1,26 +1,6 @@
 package Symbol;
 
-import Absyn.Assign;
-import Absyn.AssignStmt;
-import Absyn.CallStmt;
-import Absyn.CompoundStmt;
-import Absyn.Decl;
-import Absyn.DeclList;
-import Absyn.Exp;
-import Absyn.ForStmt;
-import Absyn.FuncList;
-import Absyn.Function;
-import Absyn.IdentList;
-import Absyn.Identifier;
-import Absyn.IfStmt;
-import Absyn.ParamList;
-import Absyn.Program;
-import Absyn.RetStmt;
-import Absyn.Stmt;
-import Absyn.StmtList;
-import Absyn.SwitchStmt;
-import Absyn.Type;
-import Absyn.WhileStmt;
+import Absyn.*;
 
 public class TableFiller {
 	public Table table;
@@ -104,16 +84,15 @@ public class TableFiller {
 		
 		if (block)
 			current = prev;
-
 	}
 	
 	public void visit(StmtList sl) {
 		for (int i=0; i<sl.length; i++) {
-			visit(sl.get(i));
+			visit(sl.get(i), true);
 		}
 	}
 	
-	public void visit(Stmt s) {
+	public void visit(Stmt s, boolean block) {
 
 		if (s instanceof AssignStmt) {
 			AssignStmt a = (AssignStmt) s;
@@ -125,7 +104,7 @@ public class TableFiller {
 		}
 		else if (s instanceof CompoundStmt) {
 			CompoundStmt c = (CompoundStmt) s;
-			visit(c, true);
+			visit(c, block);
 		}
 		else if (s instanceof ForStmt) {
 			Scope prev = current;
@@ -135,7 +114,7 @@ public class TableFiller {
 			visit(f.init);
 			visit(f.cond);
 			visit(f.post);
-			visit(f.body);
+			visit(f.body, false);
 			
 			current = prev;
 		}
@@ -144,12 +123,12 @@ public class TableFiller {
 			visit(i.cond);
 			Scope prev = current;
 			current = prev.newIfScope(true);
-			visit(i.thenClause);
+			visit(i.thenClause, false);
 			current = prev;
 			if (i.elseClause != null) {
 				prev = current;
 				current = prev.newIfScope(false);
-				visit (i.elseClause);
+				visit (i.elseClause, false);
 				current = prev;
 			}
 		}
@@ -163,12 +142,20 @@ public class TableFiller {
 			visit(w.cond);
 			Scope prev = current;
 			current = prev.newWhileScope();
-			visit(w.body);
+			visit(w.body, false);
 			current = prev;
 		}
 		else if (s instanceof SwitchStmt) {
 			SwitchStmt sw = (SwitchStmt) s;
-			// TODO: id, clist
+			
+			visit(sw.clist);
+		}
+	}
+	
+	public void visit(CaseList cl) {
+		for (int i=0; i<cl.length; i++) {
+			Case c = cl.get(i);
+			visit(c.slist);
 		}
 	}
 	

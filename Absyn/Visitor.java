@@ -93,7 +93,8 @@ public class Visitor {
 		}
 		else if (s instanceof CompoundStmt) {
 			CompoundStmt c = (CompoundStmt) s;
-			visit(c.slist);
+			if (c.dlist != null) visit(c.dlist);
+			if (c.slist != null) visit(c.slist);
 		}
 		else if (s instanceof EmptyStmt) {
 			System.out.println(";");

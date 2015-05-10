@@ -8,6 +8,9 @@ int main() {
     if (1 > 0){
         float my;
         a = 1 * (2 + 3);
+        {
+            int block;
+        }
     }
     else 
         a = 2;
