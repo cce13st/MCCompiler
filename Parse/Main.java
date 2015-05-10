@@ -13,7 +13,7 @@ public class Main {
 		if (argv.length > 0)
 			filename = argv[0];
 		else
-			filename = "input";
+			filename = "3";
 
 		System.out.println("--- Start MiniC Java Compiler! ---");
 
@@ -23,11 +23,8 @@ public class Main {
 		System.out.println(l.yytext());
 		
 		Parser p = new Parser(new Lexer(in));
-		/* open input files, etc. here */
 		Program a = (Program) p.parse().value;
-		for (int i=0; i<a.flist.list.size(); i++) {
-			Function f = a.flist.list.get(i);
-			System.out.println(f.id);
-		}
+		Visitor v = new Visitor(a);
+		v.startVisit();
 	}
 }

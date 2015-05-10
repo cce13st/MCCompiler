@@ -52,17 +52,13 @@ precedence right ELSE;
 
 /* Production Rules */
 Program ::=
-		{: System.out.println("Parse succeed with Empty Program!"); 
-		RESULT = new Program(null, null); :}
+		{: RESULT = new Program(null, null); :}
 	|	DeclList:dl
-		{: System.out.println("Parse succeed with DeclList Program"); 
-		RESULT = new Program((DeclList) dl, null); :}
+		{:RESULT = new Program((DeclList) dl, null); :}
 	|	FuncList:fl
-		{: System.out.println("Parse succeed with FuncList Program"); 
-		RESULT = new Program(null, (FuncList) fl); :}
+		{: RESULT = new Program(null, (FuncList) fl); :}
 	|	DeclList:dl FuncList:fl
-		{: System.out.println("Parse succeed with DeclList+FuncList Program"); 
-		RESULT = new Program((DeclList) dl, (FuncList) fl); :}
+		{: RESULT = new Program((DeclList) dl, (FuncList) fl); :}
 	;
 
 DeclList ::=
@@ -134,20 +130,31 @@ StmtList ::=
 	;
 
 Stmt ::=
-        OpenStmt
-    |   ClosedStmt
+        OpenStmt:s
+        {: RESULT = (Stmt) s; :}
+    |   ClosedStmt:s
+        {: RESULT = (Stmt) s; :}
     ;
 
 OpenStmt ::=
 		IF LPAREN Expr:cond RPAREN Stmt:thenBody
 		{: RESULT = new IfStmt(0, (Exp) cond, (Stmt) thenBody); :}
     |   IF LPAREN Expr:cond RPAREN ClosedStmt:thenBody ELSE OpenStmt:elseBody
+		{: RESULT = new IfStmt(0, (Exp) cond, (Stmt) thenBody, (Stmt) elseBody); :}
+    |   WHILE LPAREN Expr:cond RPAREN OpenStmt:body
+		{: RESULT = new WhileStmt(0, (Exp) cond, (Stmt) body, false); :}
+	|	FOR LPAREN Assign:init SEMICOLON Expr:cond SEMICOLON Assign:post RPAREN OpenStmt:body
+        {: RESULT = new ForStmt(0, (Assign) init, (Exp) cond, (Assign) post, (Stmt) body); :}
     ;
 
 ClosedStmt ::=
-        IF LPAREN Expr:cond RPAREN ClosedStmt ELSE ClosedStmt
-    |
-		AssignStmt:stmt
+        IF LPAREN Expr:cond RPAREN ClosedStmt:thenBody ELSE ClosedStmt:elseBody
+		{: RESULT = new IfStmt(0, (Exp) cond, (Stmt) thenBody, (Stmt) elseBody); :}
+    |   WHILE LPAREN Expr:cond RPAREN ClosedStmt:body
+		{: RESULT = new WhileStmt(0, (Exp) cond, (Stmt) body, false); :}
+	|	FOR LPAREN Assign:init SEMICOLON Expr:cond SEMICOLON Assign:post RPAREN ClosedStmt:body
+        {: RESULT = new ForStmt(0, (Assign) init, (Exp) cond, (Assign) post, (Stmt) body); :}
+	|	AssignStmt:stmt
         {: RESULT = (Stmt) stmt; :}
 	|	CallStmt:stmt
         {: RESULT = (Stmt) stmt; :}
@@ -197,37 +204,42 @@ RetStmt ::=
 	;
 
 WhileStmt ::=
-		WHILE LPAREN Expr:cond RPAREN Stmt:body
-		{: RESULT = new WhileStmt(0, (Exp) cond, (Stmt) body, false); :}
-	|	DO Stmt:body WHILE LPAREN Expr:cond RPAREN SEMICOLON
+		DO Stmt:body WHILE LPAREN Expr:cond RPAREN SEMICOLON
 		{: RESULT = new WhileStmt(0, (Exp) cond, (Stmt) body, true); :}
 	;
 
-ForStmt ::=
-		FOR LPAREN Assign:pre SEMICOLON Expr:cond SEMICOLON Assign:post RPAREN Stmt:body
-	;
-
 SwitchStmt ::=
-		SWITCH LPAREN identifier RPAREN LBRACE CaseList RBRACE
+		SWITCH LPAREN identifier:id RPAREN LBRACE CaseList:cl RBRACE
+        {: RESULT = new SwitchStmt((Identifier) id, (CaseList) cl); :}
 	;
 
 CaseList ::=
-		CaseCont Default
-	|	CaseCont
-	|	Default
+		CaseCont:cc Default:d
+        {: ((CaseList) cc).setDefault((DefaultCase) d); RESULT = cc; :}
+	|	CaseCont:cc
+        {: RESULT = (CaseList) cc; :}
+	|	Default:d
+        {: CaseList cl = new CaseList(); cl.setDefault((DefaultCase) d); RESULT = cl; :}
 	|
+        {: CaseList cl = new CaseList(); RESULT = cl; :}
 	;
 
 CaseCont ::=
-		CASE intnum COLON StmtList 
-	|	CASE intnum COLON StmtList BREAK SEMICOLON
-	|	CaseCont CASE intnum COLON StmtList 
-	|	CaseCont CASE intnum COLON StmtList BREAK SEMICOLON
+		CASE intnum:n COLON StmtList:sl
+        {: Case c = new Case((int) n, (StmtList) sl, false); CaseList cl = new CaseList(); cl.add(c); RESULT = cl; :}
+	|	CASE intnum:n COLON StmtList:sl BREAK SEMICOLON
+        {: Case c = new Case((int) n, (StmtList) sl, true); CaseList cl = new CaseList(); cl.add(c); RESULT = cl; :}
+	|	CaseCont:cl CASE intnum:n COLON StmtList :sl
+        {: Case c = new Case((int) n, (StmtList) sl, false); ((CaseList) cl).add(c); RESULT = cl; :} 
+	|	CaseCont:cl CASE intnum:n COLON StmtList:sl BREAK SEMICOLON
+        {: Case c = new Case((int) n, (StmtList) sl, true); ((CaseList) cl).add(c); RESULT = cl; :} 
 	;
 
 Default ::=
-		DEFAULT COLON StmtList
-	|	DEFAULT COLON StmtList BREAK SEMICOLON
+		DEFAULT COLON StmtList:sl
+        {: RESULT = new DefaultCase((StmtList) sl, false); :}
+	|	DEFAULT COLON StmtList:sl BREAK SEMICOLON
+        {: RESULT = new DefaultCase((StmtList) sl, true); :}
 	;
 
 Expr ::=

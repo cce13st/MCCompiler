@@ -1,15 +1,15 @@
 package Absyn;
 
 public class CompoundStmt extends Stmt {
-	public DeclList dl;
-	public StmtList sl;
+	public DeclList dlist;
+	public StmtList slist;
 
 	public CompoundStmt(DeclList dl, StmtList sl) {
-		this.dl = dl;
-		this.sl = sl;
+		dlist = dl;
+		slist = sl;
 	}
 
 	public CompoundStmt(StmtList sl) {
-		this.sl = sl;
+		slist = sl;
 	}
 }

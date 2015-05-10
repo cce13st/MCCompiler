@@ -1,7 +1,5 @@
 package Absyn;
 
-import Symbol.Symbol;
-
 public class AssignStmt extends Stmt {
 	public Assign assign;
 	

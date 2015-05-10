@@ -8,6 +8,5 @@ public class IdExp extends Exp {
 	public IdExp(int p, String symbol) {
 		pos = p;
 		this.s = Symbol.newSymbol(symbol);
-		System.out.println("Id expr : " + this.s);
 	}
 }

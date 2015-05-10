@@ -6,6 +6,5 @@ public class IntExp extends Exp {
 	public IntExp(int p, int v) {
 		pos = p;
 		value = v;
-		System.out.println("INTINTEXP");
 	}
 }

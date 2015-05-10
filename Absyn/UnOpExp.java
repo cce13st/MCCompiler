@@ -8,7 +8,6 @@ public class UnOpExp extends Exp {
 		pos = p;
 		oper = o;
 		exp = e;
-		System.out.println("P : " + p + ", OP : " + o);
 	}
 
 	public enum Op {

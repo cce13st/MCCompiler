@@ -17,7 +17,5 @@ public class Assign extends Absyn {
 		s = Symbol.newSymbol(i);
 		index = e1;
 		rhs = e2;
-		
-		System.out.println("AssignStmt with index : " + s);
 	}
 }

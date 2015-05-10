@@ -9,7 +9,5 @@ public class ArrayExp extends Exp {
 	public ArrayExp(int p, String id, Exp e) {
 		s = Symbol.newSymbol(id);
 		index = e;
-		
-		System.out.println("ArrayExp id : " + s);
 	}
 }
