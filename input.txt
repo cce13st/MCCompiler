@@ -14,6 +14,10 @@ int main() {
     }
     else 
         a = 2;
+
+    for (xzy[1] = 1; xzy[1] <= x; xzy[1] = x + 1) {
+        float fl;
+    }
 }
 
 float a1(int a, int b, float c) {

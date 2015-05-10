@@ -149,7 +149,7 @@ public class Visitor {
 				visit(w.body, false);
 				System.out.print("} while (");
 				visit(w.cond);
-				System.out.println(")");
+				System.out.println(");");
 			}
 			else {
 				System.out.print("while (");
