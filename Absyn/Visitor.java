@@ -15,9 +15,10 @@ public class Visitor {
 	public void visit(Program p) {
 		DeclList dl = p.dlist;
 		FuncList fl = p.flist;
-		if (dl != null) visit(dl);
-		
-		System.out.println("");
+		if (dl != null) {
+			visit(dl);
+			System.out.println("");
+		}
 		
 		if (fl != null) visit(fl);
 	}
@@ -47,8 +48,10 @@ public class Visitor {
 		if (e instanceof ArrayExp) {
 			ArrayExp a = (ArrayExp) e;
 			System.out.print(a.s);
+			System.out.print("[");
 			Exp index = ((ArrayExp) e).index;
 			visit(index);
+			System.out.print("]");
 		}
 		else if (e instanceof BinOpExp) {
 			BinOpExp b = (BinOpExp) e;
