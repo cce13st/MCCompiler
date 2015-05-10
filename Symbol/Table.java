@@ -1,6 +1,5 @@
 package Symbol;
 
-import java.util.Set;
 import Absyn.Program;
 
 public class Table {
@@ -41,7 +40,7 @@ public class Table {
 			else
 				arrayStr = sym.array + "";
 				
-			System.out.print(cnt + "\t" + key + "\t" + sym.type.toString() + "\t\t" + arrayStr + "\t");
+			System.out.print(cnt + "\t\t" + key + "\t\t" + sym.type.toString() + "\t\t" + arrayStr + "\t\t");
 			if(sym.var)
 				System.out.println("variable");
 			else
