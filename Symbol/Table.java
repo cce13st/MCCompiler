@@ -19,12 +19,12 @@ public class Table {
 	}
 	
 	public void printScope(Scope s) {
-		if (s.map.keySet().size() == 0) {
-			for (int i=0; i<s.descend.size(); i++) {
-				printScope(s.descend.get(i));
-			}
-			return;
-		}
+//		if (s.map.keySet().size() == 0) {
+//			for (int i=0; i<s.descend.size(); i++) {
+//				printScope(s.descend.get(i));
+//			}
+//			return;
+//		}
 		
 		System.out.println("Function name : " + s.getLocName());
 		System.out.println("-------------------------------------------------");
