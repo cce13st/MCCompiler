@@ -9,7 +9,14 @@ parser code {:
 		lexer=l;
 		this.symbolFactory = new DefaultSymbolFactory();
 	}
+
 :};
+
+action code {:
+    public Lexer getLexer() {
+        return parser.lexer;
+    }
+:}
 
 scan with {:
 	java_cup.runtime.Symbol sym = lexer.nextToken();
@@ -274,6 +281,7 @@ Expr ::=
 		{: RESULT = new FloatExp(0, (Float) f); :}
 	|	id:s
     	{: RESULT = new IdExp(0, (String) s); :}
+        /* {: System.out.println("IdExp reduce, id : " + s + ", line : " + getLexer().getLine() + " column : " + getLexer().getColumn()); :} */
 	|	id:i LBRACK Expr:e RBRACK
     	{: RESULT = new ArrayExp(0, (String) i, (Exp) e); :}
 	|	LPAREN Expr:e RPAREN

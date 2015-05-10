@@ -19,6 +19,9 @@ import java_cup.runtime.*;
 	private Symbol symbol(int type, Object value) {
 		return new Symbol(type, yyline+1, yycolumn+1, value);
 	}
+
+    int getLine() { return yyline+1; }
+    int getColumn() { return yycolumn+1; }
 %}
 
 id = [a-zA-Z][a-zA-Z0-9_]*
