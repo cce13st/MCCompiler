@@ -1,7 +1,5 @@
 package Absyn;
 
-import Symbol.Symbol;
-
 public class Function extends Absyn {
 	public Type type;
 	public String id;
