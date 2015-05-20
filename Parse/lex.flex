@@ -27,7 +27,7 @@ import java_cup.runtime.*;
 id = [a-zA-Z][a-zA-Z0-9_]*
 intnum = [:digit:]+
 floatnum = [:digit:]+ \. [:digit:]+
-whiteSpace = [ \n\t\f]
+whiteSpace = [ \n\t\r]
 
 %%
 
