@@ -56,12 +56,15 @@ public class Scope {
 	}
 
 	public void addBind(String key, Symbol s) {
-		map.put(key, s);
-//		System.out.println("addBind");
+		if (map.get(key) != null) {
+			s.setDuplicated(true);
+		}
+		else
+			map.put(key, s);
 	}
 	
 	public Symbol lookup(String key) {
-		Scope current = outer;
+		Scope current = this;
 		while (current != null) {
 			Symbol s = current.map.get(key);
 			if (s != null) {

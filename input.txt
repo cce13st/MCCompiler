@@ -3,30 +3,18 @@ float x,y,z,w,a;
 
 int main() {
     int xzy[1];
-    float sdfasdf[1523];
-    if (2 > 0)
-    if (1 > 0){
-        float my;
-        a = 1 * (2 + 3);
-        {
-            int block;
-        }
-    }
-    else 
-        a = 2;
-
-    for (xzy[1] = 1; xzy[1] <= x; xzy[1] = x + 1) {
-        float fl;
-    }
+    xzy[4.3] = 1;
 }
 
 float a1(int a, int b, float c) {
     int x, y;
+    float x;
     x = y;
 }
 
 float a2() {
     int var;
-    v = d(2, 3, 4+4);
+    var = 1;
+    v = d(x, 3, 4+var);
     return 0; 
 }

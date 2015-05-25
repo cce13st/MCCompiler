@@ -1,12 +1,21 @@
 package Symbol;
 
+import java.util.HashMap;
+
+import Absyn.Function;
 import Absyn.Program;
 
 public class Table {
 	public Scope global;
+	public HashMap<String, Function> funcMap;
 	
 	public Table() {
 		global = new Scope(null, "GLOBAL", true);
+		funcMap = new HashMap<String, Function>();
+	}
+	
+	public void addFunction(Function f) {
+		funcMap.put(f.id, f);
 	}
 	
 	public void fillTable(Program p) {
@@ -52,5 +61,10 @@ public class Table {
 		for (int i=0; i<s.descend.size(); i++) {
 			printScope(s.descend.get(i));
 		}
+	}
+	
+	public void typeAnalysis(Program p) {
+		TypeAnalyzer ta = new TypeAnalyzer(global, p);
+		ta.startAnalysis();
 	}
 }

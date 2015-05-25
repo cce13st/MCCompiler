@@ -37,12 +37,11 @@ public class TableFiller {
 
 		for (int i = 0; i < il.length; i++) {
 			Identifier id = il.get(i);
-			Symbol s;
 			if (id.index == null)
-				s = new Symbol(type.ty, id.s.name, 0, true);
+				id.s = new Symbol(type.ty, id.s.name, 0, true);
 			else
-				s = new Symbol(type.ty, id.s.name, id.index, true);
-			current.addBind(id.s.name, s);
+				id.s = new Symbol(type.ty, id.s.name, id.index, true);
+			current.addBind(id.s.name, id.s);
 		}
 	}
 
@@ -53,9 +52,13 @@ public class TableFiller {
 	}
 
 	public void visit(Function f) {
+		table.addFunction(f);
+		
 		Scope prev = current;
 		current = new Scope(prev, f.id, true);
-		if (f.paramList != null) visit(f.paramList);
+		
+		if (f.paramList != null)
+			visit(f.paramList);
 		visit(f.compoundStmt, false);
 		current = prev;
 	}
@@ -92,15 +95,17 @@ public class TableFiller {
 		}
 	}
 	
+	public void visit(ArgList al) {
+		for (int i=0; i<al.length; i++) {
+			visit(al.get(i));
+		}
+	}
+	
 	public void visit(Stmt s, boolean block) {
 
 		if (s instanceof AssignStmt) {
 			AssignStmt a = (AssignStmt) s;
 			visit(a.assign);
-		}
-		else if (s instanceof CallStmt) {
-			CallStmt c = (CallStmt) s;
-			visit(c.exp);
 		}
 		else if (s instanceof CompoundStmt) {
 			CompoundStmt c = (CompoundStmt) s;
@@ -132,11 +137,6 @@ public class TableFiller {
 				current = prev;
 			}
 		}
-		else if (s instanceof RetStmt) {
-			RetStmt r = (RetStmt) s;
-			if (r.exp != null)
-				visit(r.exp);
-		}
 		else if (s instanceof WhileStmt) {
 			WhileStmt w = (WhileStmt) s;
 			visit(w.cond);
@@ -147,8 +147,17 @@ public class TableFiller {
 		}
 		else if (s instanceof SwitchStmt) {
 			SwitchStmt sw = (SwitchStmt) s;
-			
+			sw.id.s = checkDeclared(current, sw.id.s);
 			visit(sw.clist);
+		}
+		else if (s instanceof CallStmt) {
+			CallStmt c = (CallStmt) s;
+			visit(c.exp);
+		}
+		else if (s instanceof RetStmt) {
+			RetStmt r = (RetStmt) s;
+			if (r.exp != null)
+				visit(r.exp);
 		}
 	}
 	
@@ -160,12 +169,60 @@ public class TableFiller {
 	}
 	
 	public void visit(Exp e) {
+		if (e instanceof ArrayExp) {
+			ArrayExp a = (ArrayExp) e;
+			
+			a.s = checkDeclared(current, a.s);
+			
+			Exp index = ((ArrayExp) e).index;
+			visit(index);
+		}
+		else if (e instanceof BinOpExp) {
+			BinOpExp b = (BinOpExp) e;
+			visit(b.left);
+			visit(b.right);
+		}
+		else if (e instanceof CallExp) {
+			CallExp c = (CallExp) e;
+
+			Symbol s = current.lookup(c.func.toString());
+			if (s == null)
+				c.func.setDeclared(false);
+			else
+				c.func = s;
+			
+			if(c.args != null)
+				visit(c.args);
+		}
+		else if (e instanceof IdExp) {
+			IdExp i = (IdExp) e;
+			i.s = checkDeclared(current, i.s);
+		}
+		else if (e instanceof UnOpExp) {
+			UnOpExp u = (UnOpExp) e;
+			visit(u.exp);
+		}
 	}
 	
 	public void visit(Assign a) {
-		if (a.index != null) {
+		a.s = checkDeclared(current, a.s);
+		
+		if (a.index != null)
 			visit(a.index);
-		}
+		
 		visit(a.rhs);
+	}
+	
+	private Symbol checkDeclared(Scope current, Symbol target) {
+		Symbol s = current.lookup(target.name);
+		if (s == null) {
+			target.setDeclared(false);
+			s = target;
+		}
+		else {
+			target = s;
+		}
+		
+		return s;
 	}
 }

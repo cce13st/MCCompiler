@@ -16,9 +16,9 @@ public class Main {
 
 	public static void main(String argv[]) throws Exception {
 		String filename = null;
-		PrintStream outstream = null;
-        outstream = new PrintStream(new FileOutputStream(treeOut));
-        System.setOut(outstream);  
+//		PrintStream outstream = null;
+//        outstream = new PrintStream(new FileOutputStream(treeOut));
+//        System.setOut(outstream);  
 
 		if (argv.length > 0)
 			filename = argv[0];
@@ -31,13 +31,15 @@ public class Main {
 
 		Program a = (Program) p.parse().value;
 		Visitor v = new Visitor(a);
-		v.printAST();
-
-        outstream = new PrintStream(new FileOutputStream(tableOut));
-        System.setOut(outstream);  
+//		v.printAST();
+//		
+//        outstream = new PrintStream(new FileOutputStream(tableOut));
+//        System.setOut(outstream);  
 		
 		Table t = new Table();
 		t.fillTable(a);
 		t.printTable();
+		
+		t.typeAnalysis(a);
 	}
 }
