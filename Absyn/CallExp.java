@@ -3,18 +3,19 @@ package Absyn;
 import Symbol.Symbol;
 
 public class CallExp extends Exp {
-	public Symbol func;
+	public String funcName;
+	public Function func;
 	public ArgList args;
 
 	public CallExp(int p, String i) {
 		pos = p;
-		func = Symbol.newSymbol(i);
+		funcName = i;
 		args = null;
 	}
 
 	public CallExp(int p, String i, ArgList a) {
 		pos = p;
-		func = Symbol.newSymbol(i);
+		funcName = i;
 		args = a;
 	}
 }

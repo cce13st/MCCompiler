@@ -6,7 +6,10 @@ public class Function extends Absyn {
 	public ParamList paramList;
 	public CompoundStmt compoundStmt;
 	
-	public Function(int p, Type t, String i, ParamList pl, CompoundStmt cs) {
+	public boolean duplicate = false;
+	
+	public Function(int l, int p, Type t, String i, ParamList pl, CompoundStmt cs) {
+		line = l;
 		pos = p;
 		type = t;
 		id = i;
@@ -14,7 +17,8 @@ public class Function extends Absyn {
 		compoundStmt = cs;
 	}
 
-	public Function(int p, Type t, String i, CompoundStmt cs) {
+	public Function(int l, int p, Type t, String i, CompoundStmt cs) {
+		line = l;
 		pos = p;
 		type = t;
 		id = i;

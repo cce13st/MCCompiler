@@ -3,6 +3,7 @@ package Symbol;
 import Absyn.*;
 
 class TypeAnalyzer {
+	public Table table;
 	public Scope global;
 	public Program root;
 
@@ -12,8 +13,9 @@ class TypeAnalyzer {
 	private Scope prev;
 	private int prevIdx;
 
-	public TypeAnalyzer(Scope global, Program p) {
-		this.global = global;
+	public TypeAnalyzer(Table t, Program p) {
+		this.table = t;
+		this.global = t.global;
 		root = p;
 	}
 
@@ -21,8 +23,8 @@ class TypeAnalyzer {
 		current = global;
 		currentIdx = 0;
 
-		System.out.println("Type analysis start");
-		System.out.println("================================");
+		System.out.println("================ Type analysis start ================");
+		System.out.println("");
 		visit(root);
 	}
 
@@ -59,12 +61,11 @@ class TypeAnalyzer {
 			Symbol s = id.s;
 
 			if (s.isDuplicated()) {
-				StaticError.DuplicatedDeclaration(s, current);
+				StaticError.DuplicatedDeclaration(s, current, s.line, s.pos);
 			}
 			if (s.type != type.ty) {
 				StaticError.TypeMismatched(s, type.ty);
 			}
-
 		}
 	}
 
@@ -107,7 +108,7 @@ class TypeAnalyzer {
 			visit(f.init);
 			ExpInfo condInfo = visit(f.cond);
 			if (condInfo == null || !condInfo.isBoolean()) {
-				System.err.println("Cannot check condition type");
+				StaticError.NotConditionExp(f.cond.line, f.cond.pos);
 			}
 			
 			visit(f.post);
@@ -119,7 +120,7 @@ class TypeAnalyzer {
 			IfStmt i = (IfStmt) s;
 			ExpInfo condInfo = visit(i.cond);
 			if (condInfo == null || !condInfo.isBoolean()) {
-				System.err.println("Cannot check condition type");
+				StaticError.NotConditionExp(i.cond.line, i.cond.pos);
 			}
 
 			ScopeStore();
@@ -140,7 +141,7 @@ class TypeAnalyzer {
 			WhileStmt w = (WhileStmt) s;
 			ExpInfo condInfo = visit(w.cond);
 			if (condInfo == null || !condInfo.isBoolean()) {
-				System.err.println("Cannot check condition type");
+				StaticError.NotConditionExp(w.cond.line, w.cond.pos);
 			}
 
 			ScopeStore();
@@ -152,8 +153,7 @@ class TypeAnalyzer {
 		else if (s instanceof SwitchStmt) {
 			SwitchStmt sw = (SwitchStmt) s;
 			if (!sw.id.s.isDeclared()) {
-				System.err
-						.println("variable " + sw.id.s + " does not declared");
+				StaticError.VarNotDeclared(sw.id.s, current, sw.id.s.line, sw.id.s.pos);
 			}
 			visit(sw.clist);
 		}
@@ -182,8 +182,9 @@ class TypeAnalyzer {
 			ArrayExp a = (ArrayExp) e;
 
 			// Array symbol declared?
+			a.s = checkDeclared(current, a.s);
 			if (!a.s.isDeclared()) {
-				StaticError.VarNotDeclared(a.s, current);
+				StaticError.VarNotDeclared(a.s, current, a.s.line, a.s.pos);
 			}
 
 			// The type of array symbol
@@ -234,34 +235,38 @@ class TypeAnalyzer {
 			}
 		} 
 		else if (e instanceof CallExp) {
-			// Call하는 함수가 정의되었는지
-			// Call하는 함수의 type 확인
-			// parameter-argument type compatibility
-
 			CallExp c = (CallExp) e;
 
-			if (!c.func.isDeclared()) {
-				StaticError.VarNotDeclared(c.func, current);
+			// Check if function declared
+			Function f = table.funcMap.get(c.funcName);
+			if (f == null) {
+				StaticError.FuncNotDeclared(c.funcName, current);
 				return null;
 			}
+			else
+				c.func = f;
 
 			if (c.args != null) {
 				ArgList al = c.args;
+				ParamList pl = f.paramList;
 				
 				for (int i=0; i<al.length; i++) {
-					ExpInfo ei = visit(al.get(i));
+					ExpInfo argInfo = visit(al.get(i));
+					Type paramType = pl.tlist.get(i);
 					
-					if (ei == null) {
-						return null;
+					if (argInfo == null) {
+						System.err.println("argument expression does not exist");
 					}
 					
 					// Type checking with parameter type
-					if (ei.type != null) {
-						
+					if (argInfo.type != paramType.ty) {
+						System.err.println("Type mismatched parameter and argument");
 					}
 				}
 			}
-			return null;
+			
+			// Return the function's return type
+			return new ExpInfo(f.type.ty);
 		} 
 		else if (e instanceof IntExp) {
 			ExpInfo ei = new ExpInfo(Type.type.INT);
@@ -273,8 +278,9 @@ class TypeAnalyzer {
 		} 
 		else if (e instanceof IdExp) {
 			IdExp i = (IdExp) e;
+			i.s = checkDeclared(current, i.s);
 			if (!i.s.isDeclared()) {
-				StaticError.VarNotDeclared(i.s, current);
+				StaticError.VarNotDeclared(i.s, current, i.line, i.pos);
 				return null;
 			}
 
@@ -299,14 +305,15 @@ class TypeAnalyzer {
 	}
 
 	public void visit(Assign a) {
+		a.s = checkDeclared(current, a.s);
 		if (!a.s.isDeclared()) {
-			StaticError.VarNotDeclared(a.s, current);
+			StaticError.VarNotDeclared(a.s, current, a.line, a.pos);
 		}
 
 		if (a.index != null) {
 			ExpInfo ei = visit(a.index);
 			if (ei == null || !ei.isInteger()) {
-				System.err.println("this is not integer index");
+				StaticError.NotInteger(a.line, a.pos);
 			}
 		}
 
@@ -317,7 +324,7 @@ class TypeAnalyzer {
 		}
 		
 		if (ri.type != a.s.type) {
-			
+			StaticError.TypeMismatched(a.s, ri.type);
 		}
 	}
 
@@ -331,6 +338,19 @@ class TypeAnalyzer {
 	private void ScopeRecovery() {
 		current = prev;
 		currentIdx = prevIdx++;
+	}
+	
+	private Symbol checkDeclared(Scope current, Symbol target) {
+		Symbol s = current.lookup(target.name);
+		if (s == null) {
+			target.setDeclared(false);
+			s = target;
+		}
+		else {
+			target = s;
+		}
+		
+		return s;
 	}
 }
 

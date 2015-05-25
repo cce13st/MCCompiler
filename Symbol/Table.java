@@ -64,7 +64,7 @@ public class Table {
 	}
 	
 	public void typeAnalysis(Program p) {
-		TypeAnalyzer ta = new TypeAnalyzer(global, p);
+		TypeAnalyzer ta = new TypeAnalyzer(this, p);
 		ta.startAnalysis();
 	}
 }

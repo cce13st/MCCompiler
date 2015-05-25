@@ -6,10 +6,10 @@ import java_cup.runtime.*;
 %%
 
 %class Lexer
-%function nextToken
 %type java_cup.runtime.Symbol
 %line
 %column
+%cup
 
 %{
 	private Symbol symbol(int type) {

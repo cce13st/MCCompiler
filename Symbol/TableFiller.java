@@ -38,9 +38,9 @@ public class TableFiller {
 		for (int i = 0; i < il.length; i++) {
 			Identifier id = il.get(i);
 			if (id.index == null)
-				id.s = new Symbol(type.ty, id.s.name, 0, true);
+				id.s = new Symbol(type.ty, id.s.name, 0, true, id.line, id.pos);
 			else
-				id.s = new Symbol(type.ty, id.s.name, id.index, true);
+				id.s = new Symbol(type.ty, id.s.name, id.index, true, id.line, id.pos);
 			current.addBind(id.s.name, id.s);
 		}
 	}
@@ -52,7 +52,11 @@ public class TableFiller {
 	}
 
 	public void visit(Function f) {
-		table.addFunction(f);
+		if (table.funcMap.get(f.id) == null)
+			table.addFunction(f);
+		else {
+			f.duplicate = true;
+		}
 		
 		Scope prev = current;
 		current = new Scope(prev, f.id, true);
@@ -70,9 +74,9 @@ public class TableFiller {
 
 			Symbol s;
 			if (id.index == null)
-				s = new Symbol(type.ty, id.s.name, 0, false);
+				s = new Symbol(type.ty, id.s.name, 0, false, id.line, id.pos);
 			else
-				s = new Symbol(type.ty, id.s.name, id.index, false);
+				s = new Symbol(type.ty, id.s.name, id.index, false, id.line, id.pos);
 			current.addBind(id.s.name, s);
 		}
 	}
@@ -170,10 +174,6 @@ public class TableFiller {
 	
 	public void visit(Exp e) {
 		if (e instanceof ArrayExp) {
-			ArrayExp a = (ArrayExp) e;
-			
-			a.s = checkDeclared(current, a.s);
-			
 			Exp index = ((ArrayExp) e).index;
 			visit(index);
 		}
@@ -184,19 +184,9 @@ public class TableFiller {
 		}
 		else if (e instanceof CallExp) {
 			CallExp c = (CallExp) e;
-
-			Symbol s = current.lookup(c.func.toString());
-			if (s == null)
-				c.func.setDeclared(false);
-			else
-				c.func = s;
 			
 			if(c.args != null)
 				visit(c.args);
-		}
-		else if (e instanceof IdExp) {
-			IdExp i = (IdExp) e;
-			i.s = checkDeclared(current, i.s);
 		}
 		else if (e instanceof UnOpExp) {
 			UnOpExp u = (UnOpExp) e;
@@ -205,8 +195,6 @@ public class TableFiller {
 	}
 	
 	public void visit(Assign a) {
-		a.s = checkDeclared(current, a.s);
-		
 		if (a.index != null)
 			visit(a.index);
 		

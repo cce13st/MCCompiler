@@ -7,13 +7,17 @@ public class Assign extends Absyn {
 	public Exp index;
 	public Exp rhs;
 	
-	public Assign(int p, String i, Exp e) {
+	public Assign(int l, int p, String i, Exp e) {
+		line = l;
+		pos = p;
 		s = Symbol.newSymbol(i);
 		index = null;
 		rhs = e;
 	}
 	
-	public Assign(int p, String i, Exp e1, Exp e2) {
+	public Assign(int l, int p, String i, Exp e1, Exp e2) {
+		line = l;
+		pos = p;
 		s = Symbol.newSymbol(i);
 		index = e1;
 		rhs = e2;

@@ -2,7 +2,7 @@ package Parse;
 
 import java_cup.runtime.DefaultSymbolFactory;
 import Absyn.*;
-
+/*
 parser code {:
 	Lexer lexer;
 	public Parser(Lexer l) {
@@ -19,10 +19,11 @@ action code {:
 :}
 
 scan with {:
-	java_cup.runtime.Symbol sym = lexer.nextToken();
-    return (sym!=null) ? sym : getSymbolFactory().newSymbol("END_OF_FILE", EOF_sym());
+    return lexer.nextToken();
+	//java_cup.runtime.Symbol sym = lexer.nextToken();
+    //return (sym!=null) ? sym : getSymbolFactory().newSymbol("END_OF_FILE", EOF_sym());
 :};
-
+*/
 
 /* Terminal Symbols */
 terminal INT, FLOAT;
@@ -96,16 +97,16 @@ IdentList ::=
 
 identifier ::=
 		id:i
-		{: RESULT = new Identifier(0, (String) i); :}
+		{: RESULT = new Identifier(0, 0, (String) i); :}
 	|	id:i LBRACK intnum:i2 RBRACK
-		{: RESULT = new Identifier(0, (String) i, (Integer) i2); :}
+		{: RESULT = new Identifier(0, 0, (String) i, (Integer) i2); :}
 	;
 
 Function ::=
 		Type:t id:i LPAREN RPAREN CompoundStmt:cs
-		{: RESULT = new Function(0, (Type) t, (String) i, (CompoundStmt) cs); :}
+		{: RESULT = new Function(0, 0, (Type) t, (String) i, (CompoundStmt) cs); :}
 	|	Type:t id:i LPAREN ParamList:pl RPAREN CompoundStmt:cs
-		{: RESULT = new Function(0, (Type) t, (String) i, (ParamList) pl, (CompoundStmt) cs); :}
+		{: RESULT = new Function(0, 0, (Type) t, (String) i, (ParamList) pl, (CompoundStmt) cs); :}
 	;
 
 ParamList ::=
@@ -186,9 +187,9 @@ AssignStmt ::=
 
 Assign ::=
 		id:i EQ Expr:e
-        {: RESULT = new Assign(0, (String) i, (Exp) e); :}
+        {: RESULT = new Assign(0, 0, (String) i, (Exp) e); :}
 	|	id:i LBRACK Expr:e1 RBRACK EQ Expr:e2
-        {: RESULT = new Assign(0, (String) i, (Exp) e1, (Exp) e2); :}
+        {: RESULT = new Assign(0, 0, (String) i, (Exp) e1, (Exp) e2); :}
 	;
 
 CallStmt ::=
@@ -269,21 +270,20 @@ Expr ::=
 		{: RESULT = new BinOpExp(0, (Exp) e1, BinOpExp.Op.GTEQ, (Exp) e2); :}
 	|	Expr:e1 LTEQ Expr:e2
 		{: RESULT = new BinOpExp(0, (Exp) e1, BinOpExp.Op.LTEQ, (Exp) e2); :}
-	|	Expr:e1 EQEQ Expr:e2
+	|	Expr:e1 EQEQ:eq Expr:e2
 		{: RESULT = new BinOpExp(0, (Exp) e1, BinOpExp.Op.EQEQ, (Exp) e2); :}
 	|	Expr:e1 NOTEQ Expr:e2
 		{: RESULT = new BinOpExp(0, (Exp) e1, BinOpExp.Op.NOTEQ, (Exp) e2); :}
 	|	Call:c
 		{: RESULT = (Exp) c; :}
 	|	intnum:i
-		{: RESULT = new IntExp(0, (Integer) i); :}
+		{: RESULT = new IntExp(0, 0, (Integer) i); :}
 	|	floatnum:f
-		{: RESULT = new FloatExp(0, (Float) f); :}
+		{: RESULT = new FloatExp(0, 0, (Float) f); :}
 	|	id:s
-    	{: RESULT = new IdExp(0, (String) s); :}
-        /* {: System.out.println("IdExp reduce, id : " + s + ", line : " + getLexer().getLine() + " column : " + getLexer().getColumn()); :} */
+    	{: System.err.println(((java_cup.runtime.Symbol) s).right); RESULT = new IdExp(0, 0, (String) s); :}
 	|	id:i LBRACK Expr:e RBRACK
-    	{: RESULT = new ArrayExp(0, (String) i, (Exp) e); :}
+    	{: RESULT = new ArrayExp(0, 0, (String) i, (Exp) e); :}
 	|	LPAREN Expr:e RPAREN
 		{: Exp expr = (Exp) e; expr.paren = true; RESULT = (Exp) expr; :}
 	;
