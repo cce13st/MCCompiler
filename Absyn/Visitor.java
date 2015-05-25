@@ -61,7 +61,7 @@ public class Visitor {
 		}
 		else if (e instanceof CallExp) {
 			CallExp c = (CallExp) e;
-			System.out.print(c.func.toString() + "(");
+			System.out.print(c.funcName+ "(");
 			if(c.args != null) visit(c.args);
 			System.out.print(")");
 		}

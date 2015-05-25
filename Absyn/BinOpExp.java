@@ -8,7 +8,8 @@ public class BinOpExp extends Exp {
 		PLUS, MINUS, MULT, DIV, LT, GT, NOTEQ, LTEQ, GTEQ, EQEQ
 	};
 
-	public BinOpExp(int p, Exp l, Op o, Exp r) {
+	public BinOpExp(int line, int p, Exp l, Op o, Exp r) {
+		this.line = line;
 		pos = p;
 		left = l;
 		op = o;

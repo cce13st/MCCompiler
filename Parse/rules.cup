@@ -1,29 +1,7 @@
 package Parse;
 
-import java_cup.runtime.DefaultSymbolFactory;
+import java_cup.runtime.Symbol;
 import Absyn.*;
-/*
-parser code {:
-	Lexer lexer;
-	public Parser(Lexer l) {
-		lexer=l;
-		this.symbolFactory = new DefaultSymbolFactory();
-	}
-
-:};
-
-action code {:
-    public Lexer getLexer() {
-        return parser.lexer;
-    }
-:}
-
-scan with {:
-    return lexer.nextToken();
-	//java_cup.runtime.Symbol sym = lexer.nextToken();
-    //return (sym!=null) ? sym : getSymbolFactory().newSymbol("END_OF_FILE", EOF_sym());
-:};
-*/
 
 /* Terminal Symbols */
 terminal INT, FLOAT;
@@ -97,16 +75,16 @@ IdentList ::=
 
 identifier ::=
 		id:i
-		{: RESULT = new Identifier(0, 0, (String) i); :}
+		{: LocValue iv = (LocValue) i; RESULT = new Identifier(iv.line, iv.pos, (String) iv.value); :}
 	|	id:i LBRACK intnum:i2 RBRACK
-		{: RESULT = new Identifier(0, 0, (String) i, (Integer) i2); :}
+		{: LocValue iv = (LocValue) i; LocValue i2v = (LocValue) i2; RESULT = new Identifier(iv.line, iv.pos, (String) iv.value, (Integer) i2v.value); :}
 	;
 
 Function ::=
 		Type:t id:i LPAREN RPAREN CompoundStmt:cs
-		{: RESULT = new Function(0, 0, (Type) t, (String) i, (CompoundStmt) cs); :}
+		{: LocValue iv = (LocValue) i; RESULT = new Function(iv.line, iv.pos, (Type) t, (String) iv.value, (CompoundStmt) cs); :}
 	|	Type:t id:i LPAREN ParamList:pl RPAREN CompoundStmt:cs
-		{: RESULT = new Function(0, 0, (Type) t, (String) i, (ParamList) pl, (CompoundStmt) cs); :}
+		{: LocValue iv = (LocValue) i; RESULT = new Function(iv.line, iv.pos, (Type) t, (String) iv.value, (ParamList) pl, (CompoundStmt) cs); :}
 	;
 
 ParamList ::=
@@ -186,10 +164,10 @@ AssignStmt ::=
 	;
 
 Assign ::=
-		id:i EQ Expr:e
-        {: RESULT = new Assign(0, 0, (String) i, (Exp) e); :}
+		id:i EQ:eq Expr:e
+        {: LocValue iv = (LocValue) i; RESULT = new Assign(iv.line, iv.pos, (String) iv.value, (Exp) e); :}
 	|	id:i LBRACK Expr:e1 RBRACK EQ Expr:e2
-        {: RESULT = new Assign(0, 0, (String) i, (Exp) e1, (Exp) e2); :}
+        {: LocValue iv = (LocValue) i; RESULT = new Assign(iv.line, iv.pos, (String) iv.value, (Exp) e1, (Exp) e2); :}
 	;
 
 CallStmt ::=
@@ -199,9 +177,9 @@ CallStmt ::=
 
 Call ::=
 		id:i LPAREN RPAREN
-		{: RESULT = new CallExp(0, (String) i); :}
+		{: LocValue iv = (LocValue) i; RESULT = new CallExp(0, (String) iv.value); :}
 	|	id:i LPAREN ArgList:args RPAREN
-		{: RESULT = new CallExp(0, (String) i, (ArgList) args); :}
+		{: LocValue iv = (LocValue) i; RESULT = new CallExp(0, (String) iv.value, (ArgList) args); :}
 	;
 
 RetStmt ::=
@@ -234,13 +212,13 @@ CaseList ::=
 
 CaseCont ::=
 		CASE intnum:n COLON StmtList:sl
-        {: Case c = new Case((int) n, (StmtList) sl, false); CaseList cl = new CaseList(); cl.add(c); RESULT = cl; :}
+        {: LocValue lv = (LocValue) n; Case c = new Case((int) lv.value, (StmtList) sl, false); CaseList cl = new CaseList(); cl.add(c); RESULT = cl; :}
 	|	CASE intnum:n COLON StmtList:sl BREAK SEMICOLON
-        {: Case c = new Case((int) n, (StmtList) sl, true); CaseList cl = new CaseList(); cl.add(c); RESULT = cl; :}
+        {: LocValue lv = (LocValue) n; Case c = new Case((int) lv.value, (StmtList) sl, true); CaseList cl = new CaseList(); cl.add(c); RESULT = cl; :}
 	|	CaseCont:cl CASE intnum:n COLON StmtList :sl
-        {: Case c = new Case((int) n, (StmtList) sl, false); ((CaseList) cl).add(c); RESULT = cl; :} 
+        {: LocValue lv = (LocValue) n; Case c = new Case((int) lv.value, (StmtList) sl, false); ((CaseList) cl).add(c); RESULT = cl; :} 
 	|	CaseCont:cl CASE intnum:n COLON StmtList:sl BREAK SEMICOLON
-        {: Case c = new Case((int) n, (StmtList) sl, true); ((CaseList) cl).add(c); RESULT = cl; :} 
+        {: LocValue lv = (LocValue) n; Case c = new Case((int) lv.value, (StmtList) sl, true); ((CaseList) cl).add(c); RESULT = cl; :} 
 	;
 
 Default ::=
@@ -252,38 +230,38 @@ Default ::=
 
 Expr ::=
 		MINUS Expr:e
-		{: RESULT = new UnOpExp(0, UnOpExp.Op.MINUS, (Exp) e); :}
+		{: Exp exp = (Exp) e; RESULT = new UnOpExp(exp.line, exp.pos, UnOpExp.Op.MINUS, exp); :}
         %prec UMINUS
 	|	Expr:e1 PLUS Expr:e2
-		{: RESULT = new BinOpExp(0, (Exp) e1, BinOpExp.Op.PLUS, (Exp) e2); :}
+		{: Exp exp = (Exp) e1; RESULT = new BinOpExp(exp.line, exp.pos, exp, BinOpExp.Op.PLUS, (Exp) e2); :}
 	|	Expr:e1 MINUS Expr:e2
-		{: RESULT = new BinOpExp(0, (Exp) e1, BinOpExp.Op.MINUS, (Exp) e2); :}
+		{: Exp exp = (Exp) e1; RESULT = new BinOpExp(exp.line, exp.pos, exp, BinOpExp.Op.MINUS, (Exp) e2); :}
 	|	Expr:e1 MULT Expr:e2
-		{: RESULT = new BinOpExp(0, (Exp) e1, BinOpExp.Op.MULT, (Exp) e2); :}
+		{: Exp exp = (Exp) e1; RESULT = new BinOpExp(exp.line, exp.pos, exp, BinOpExp.Op.MULT, (Exp) e2); :}
 	|	Expr:e1 DIV Expr:e2
-		{: RESULT = new BinOpExp(0, (Exp) e1, BinOpExp.Op.DIV, (Exp) e2); :}
+		{: Exp exp = (Exp) e1; RESULT = new BinOpExp(exp.line, exp.pos, exp, BinOpExp.Op.DIV, (Exp) e2); :}
 	|	Expr:e1 GT Expr:e2
-		{: RESULT = new BinOpExp(0, (Exp) e1, BinOpExp.Op.GT, (Exp) e2); :}
+		{: Exp exp = (Exp) e1; RESULT = new BinOpExp(exp.line, exp.pos, exp, BinOpExp.Op.GT, (Exp) e2); :}
 	|	Expr:e1 LT Expr:e2
-		{: RESULT = new BinOpExp(0, (Exp) e1, BinOpExp.Op.LT, (Exp) e2); :}
+		{: Exp exp = (Exp) e1; RESULT = new BinOpExp(exp.line, exp.pos, exp, BinOpExp.Op.LT, (Exp) e2); :}
 	|	Expr:e1 GTEQ Expr:e2
-		{: RESULT = new BinOpExp(0, (Exp) e1, BinOpExp.Op.GTEQ, (Exp) e2); :}
+		{: Exp exp = (Exp) e1; RESULT = new BinOpExp(exp.line, exp.pos, exp, BinOpExp.Op.GTEQ, (Exp) e2); :}
 	|	Expr:e1 LTEQ Expr:e2
-		{: RESULT = new BinOpExp(0, (Exp) e1, BinOpExp.Op.LTEQ, (Exp) e2); :}
+		{: Exp exp = (Exp) e1; RESULT = new BinOpExp(exp.line, exp.pos, exp, BinOpExp.Op.LTEQ, (Exp) e2); :}
 	|	Expr:e1 EQEQ:eq Expr:e2
-		{: RESULT = new BinOpExp(0, (Exp) e1, BinOpExp.Op.EQEQ, (Exp) e2); :}
-	|	Expr:e1 NOTEQ Expr:e2
-		{: RESULT = new BinOpExp(0, (Exp) e1, BinOpExp.Op.NOTEQ, (Exp) e2); :}
+		{: Exp exp = (Exp) e1; RESULT = new BinOpExp(exp.line, exp.pos, exp, BinOpExp.Op.EQEQ, (Exp) e2); :}
+	|	Expr:e1 NOTEQ:ne Expr:e2
+		{: Exp exp = (Exp) e1; RESULT = new BinOpExp(exp.line, exp.pos, exp, BinOpExp.Op.NOTEQ, (Exp) e2); :}
 	|	Call:c
 		{: RESULT = (Exp) c; :}
 	|	intnum:i
-		{: RESULT = new IntExp(0, 0, (Integer) i); :}
+		{: LocValue iv = (LocValue) i; RESULT = new IntExp(iv.line, iv.pos, (Integer) iv.value); :}
 	|	floatnum:f
-		{: RESULT = new FloatExp(0, 0, (Float) f); :}
+		{: LocValue fv = (LocValue) f; RESULT = new FloatExp(fv.line, fv.pos, (Float) fv.value); :}
 	|	id:s
-    	{: System.err.println(((java_cup.runtime.Symbol) s).right); RESULT = new IdExp(0, 0, (String) s); :}
+    	{: LocValue sv = (LocValue) s; RESULT = new IdExp(sv.line, sv.pos, (String) sv.value); :}
 	|	id:i LBRACK Expr:e RBRACK
-    	{: RESULT = new ArrayExp(0, 0, (String) i, (Exp) e); :}
+    	{: LocValue iv = (LocValue) i; RESULT = new ArrayExp(iv.line, iv.pos, (String) iv.value, (Exp) e); :}
 	|	LPAREN Expr:e RPAREN
 		{: Exp expr = (Exp) e; expr.paren = true; RESULT = (Exp) expr; :}
 	;

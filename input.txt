@@ -18,7 +18,7 @@ float a2() {
     v = d(x, 3, 4+var);
     var = a1(1,2,3.4);
 
-    while ( asdf == 0 ) {
+    while ( asdf != 0 ) {
         var = 1;
     }
     return 0; 

@@ -5,6 +5,7 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.PrintStream;
 
+import java_cup.runtime.Scanner;
 import Absyn.Program;
 import Absyn.Visitor;
 import Symbol.Table;
