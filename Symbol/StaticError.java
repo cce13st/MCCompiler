@@ -37,8 +37,12 @@ public class StaticError {
 				+ type);
 	}
 	
+	public static void InvalidArg(int line, int pos) {
+		System.out.println(Error() + LinePos(line, pos) + "Invalid argument pass");
+	}
+	
 	public static void NotArrayArg(int line, int pos) {
-		System.out.println(Error() + LinePos(line, pos) + "Argument type mismatched between array and value :");
+		System.out.println(Error() + LinePos(line, pos) + "Argument type mismatched between array and value");
 	}
 
 	public static void NotArrayParam(int line, int pos) {

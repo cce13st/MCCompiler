@@ -7,6 +7,9 @@ public class Assign extends Absyn {
 	public Exp index;
 	public Exp rhs;
 	
+	public boolean i2f = false;
+	public boolean f2i = false;
+	
 	public Assign(int l, int p, String i, Exp e) {
 		line = l;
 		pos = p;

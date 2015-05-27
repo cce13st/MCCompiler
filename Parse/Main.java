@@ -1,6 +1,7 @@
 package Parse;
 
 import java.io.BufferedReader;
+import java.io.FileDescriptor;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.PrintStream;
@@ -23,7 +24,7 @@ public class Main {
 		if (argv.length > 0)
 			filename = argv[0];
 		else
-			filename = "input.txt";
+			filename = "Test5";
 
 		BufferedReader in = new BufferedReader(new FileReader(filename));
 		Lexer l = new Lexer(in);
@@ -31,17 +32,21 @@ public class Main {
 
 		Program a = (Program) p.parse().value;
 		Visitor v = new Visitor(a);
-		v.printAST();
+//		v.printAST();
 		
-        outstream = new PrintStream(new FileOutputStream(tableOut));
-        System.setOut(outstream);  
+//        outstream = new PrintStream(new FileOutputStream(tableOut));
+//        System.setOut(outstream);  
 		
 		Table t = new Table();
 		t.fillTable(a);
-		t.printTable();
+//		t.printTable();
 		
-		outstream = new PrintStream(new FileOutputStream("typeResult.txt"));
+		outstream = new PrintStream(new FileOutputStream(FileDescriptor.out));
         System.setOut(outstream);  
-		t.typeAnalysis(a);
+		boolean result = t.typeAnalysis(a);
+		
+		if (result) {
+			v.printAST();
+		}
 	}
 }

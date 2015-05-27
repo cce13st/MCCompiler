@@ -42,6 +42,8 @@ class TypeAnalyzer {
 	private Scope current;
 	private int currentIdx;
 	private Stack scopeStack;
+	
+	private boolean resultValidity = true;
 
 	public TypeAnalyzer(Table t, Program p) {
 		this.table = t;
@@ -50,13 +52,15 @@ class TypeAnalyzer {
 		scopeStack = new Stack();
 	}
 
-	public void startAnalysis() {
+	public boolean startAnalysis() {
 		current = global;
 		currentIdx = 0;
 
 		System.out.println("================ Type analysis start ================");
 		System.out.println("");
 		visit(root);
+		
+		return resultValidity;
 	}
 
 	public void visit(Program p) {
@@ -93,9 +97,11 @@ class TypeAnalyzer {
 
 			if (s.isDuplicated()) {
 				StaticError.DuplicatedDeclaration(s, current, s.line, s.pos);
+				resultValidity = false;
 			}
 			if (s.type != type.ty) {
 				StaticError.TypeMismatched(s, type.ty, s.line, s.pos);
+				resultValidity = false;
 			}
 		}
 	}
@@ -186,6 +192,7 @@ class TypeAnalyzer {
 			SwitchStmt sw = (SwitchStmt) s;
 			if (!sw.id.s.isDeclared()) {
 				StaticError.VarNotDeclared(sw.id.s, current, sw.id.line, sw.id.pos);
+				resultValidity = false;
 			}
 			visit(sw.clist);
 		}
@@ -233,11 +240,13 @@ class TypeAnalyzer {
 			a.s = checkDeclared(current, a.s);
 			if (!a.s.isDeclared()) {
 				StaticError.VarNotDeclared(a.s, current, a.s.line, a.s.pos);
+				resultValidity = false;
 			}
 
 			// The type of array symbol
 			if(current.lookup(a.s.name).array == 0) {
 				StaticError.VarNotArray(a.s, a.line, a.pos);
+				resultValidity = false;
 				return null;
 			}
 
@@ -298,6 +307,7 @@ class TypeAnalyzer {
 			Function f = table.funcMap.get(c.funcName);
 			if (f == null) {
 				StaticError.FuncNotDeclared(c.funcName, current, c.line, c.pos);
+				resultValidity = false;
 				return null;
 			}
 			else
@@ -309,6 +319,7 @@ class TypeAnalyzer {
 				
 				if (pl.length != al.length) {
 					StaticError.ArgsNumber(c.funcName, c.line, c.pos);
+					resultValidity = false;
 					return null;
 				}
 				
@@ -324,6 +335,7 @@ class TypeAnalyzer {
 						s = checkDeclared(current, s);
 						if (!s.isDeclared()) {
 							StaticError.VarNotDeclared(s, current, s.line, s.pos);
+							resultValidity = false;
 							valid = false;
 							continue;
 						}
@@ -336,6 +348,7 @@ class TypeAnalyzer {
 
 						if (paramArray != (s.array > 0)) {
 							StaticError.NotArrayArg(s.line, s.pos);
+							resultValidity = false;
 							valid = false;
 							continue;
 						}
@@ -345,6 +358,7 @@ class TypeAnalyzer {
 						// Type checking with parameter type
 						if (s.type != paramType.ty) {
 							StaticError.TypeMismatched(paramType.ty, arg.line, arg.pos);
+							resultValidity = false;
 							valid = false;
 							continue;
 						}
@@ -354,8 +368,9 @@ class TypeAnalyzer {
 						Type paramType = pl.tlist.get(i);
 						
 						if (argInfo == null) {
-							System.err.println("argument expression is invalid at line : " + arg.line + ", " + arg.pos);
+							StaticError.InvalidArg(arg.line, arg.pos);
 							valid = false;
+							resultValidity = false;
 							continue;
 						}
 
@@ -367,6 +382,7 @@ class TypeAnalyzer {
 						
 						if (paramArray) {
 							StaticError.NotArrayParam(arg.line, arg.pos);
+							resultValidity = false;
 							valid = false;
 							continue;
 						}
@@ -374,6 +390,7 @@ class TypeAnalyzer {
 						// Type checking with parameter type
 						if (argInfo.type != paramType.ty) {
 							StaticError.TypeMismatched(paramType.ty, arg.line, arg.pos);
+							resultValidity = false;
 							valid = false;
 							continue;
 						}
@@ -400,11 +417,13 @@ class TypeAnalyzer {
 			i.s = checkDeclared(current, i.s);
 			if (!i.s.isDeclared()) {
 				StaticError.VarNotDeclared(i.s, current, i.line, i.pos);
+				resultValidity = false;
 				return null;
 			}
 
 			if(current.lookup(i.s.name).array != 0) {
 				StaticError.ArrayWithoutIndex(i.s, i.line, i.pos);
+				resultValidity = false;
 				return null;
 			}
 
@@ -421,6 +440,7 @@ class TypeAnalyzer {
 
 			if (!descend.isNumber()) {
 				StaticError.TypeMismatched(Type.type.INT, u.line, u.pos);
+				resultValidity = false;
 			}
 
 			return descend;
@@ -435,6 +455,7 @@ class TypeAnalyzer {
 		a.s = checkDeclared(current, a.s);
 		if (!a.s.isDeclared()) {
 			StaticError.VarNotDeclared(a.s, current, a.line, a.pos);
+			resultValidity = false;
 			return;
 		}
 		
@@ -446,13 +467,16 @@ class TypeAnalyzer {
 		// Type of RHS and ID does not match
 		if (ri.type != a.s.type) {
 			if (ri.type == Type.type.INT) {
+				a.i2f = true;
 				return;
 			}
 			if (ri.type == Type.type.FLOAT && a.s.type == Type.type.INT) {
+				a.f2i = true;
 				StaticError.WarnConversion(a.s, a.line, a.pos);
 				return;
 			}
 			StaticError.TypeMismatched(a.s, ri.type, a.line, a.pos);
+			resultValidity = false;
 		}
 
 		// If array index exists
@@ -460,6 +484,7 @@ class TypeAnalyzer {
 			ExpInfo ei = visit(a.index);
 			if (ei == null || !ei.isInteger()) {
 				StaticError.NotInteger(a.line, a.pos);
+				resultValidity = false;
 				return;
 			}
 		}
@@ -467,10 +492,12 @@ class TypeAnalyzer {
 		// Check ID is an array type
 		if(current.lookup(a.s.name).array == 0 && a.index != null) {
 			StaticError.VarNotArray(a.s, a.line, a.pos);
+			resultValidity = false;
 			return;
 		}
 		if(current.lookup(a.s.name).array != 0 && a.index == null) {
 			StaticError.ArrayWithoutIndex(a.s, a.line, a.pos);
+			resultValidity = false;
 			return;
 		}
 	}

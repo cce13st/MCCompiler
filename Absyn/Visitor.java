@@ -39,6 +39,10 @@ public class Visitor {
 			System.out.print("]");
 		}
 		System.out.print(" = ");
+		if (a.i2f)
+			System.out.print("(float)");
+		if (a.f2i)
+			System.out.print("(int)");
 		visit(a.rhs);
 	}
 	
