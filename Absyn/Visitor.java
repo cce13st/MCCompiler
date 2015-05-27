@@ -83,12 +83,14 @@ public class Visitor {
 			visit(u.exp);
 		}
 		else if (e instanceof F2IExp) {
-			System.out.print("(int) ");
+			System.out.print("((int) ");
 			visit(((F2IExp) e).child);
+			System.out.print(")");
 		}
 		else if (e instanceof I2FExp) {
-			System.out.print("(float) ");
+			System.out.print("((float) ");
 			visit(((I2FExp) e).child);
+			System.out.print(")");
 		}
 		if (e.paren)
 			System.out.print(")");

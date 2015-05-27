@@ -19,6 +19,7 @@ import Absyn.FloatExp;
 import Absyn.ForStmt;
 import Absyn.FuncList;
 import Absyn.Function;
+import Absyn.I2FExp;
 import Absyn.IdExp;
 import Absyn.IdentList;
 import Absyn.Identifier;
@@ -280,20 +281,36 @@ class TypeAnalyzer {
 				
 				if (li.isInteger() && ri.isInteger())
 					conv = Type.type.INT;
-				else
+				else {
+					if (li.isInteger()) {
+						I2FExp i2f = new I2FExp(b.left.line, b.left.pos, b.left);
+						i2f.child = b.left;
+						b.left = i2f;
+					}
+					if (ri.isInteger()) {
+						I2FExp i2f = new I2FExp(b.right.line, b.right.pos, b.right);
+						i2f.child = b.right;
+						b.right = i2f;
+					}
 					conv = Type.type.FLOAT;
+				}
 				
 				ExpInfo result = new ExpInfo(conv);
 				result.complete = true;
 				return result;
 			}
-			else if (b.op == BinOpExp.Op.EQEQ || b.op == BinOpExp.Op.NOTEQ) {
-				ExpInfo result = new ExpInfo(Type.type.INT);
-				result.complete = true;
-				result.isBool = true;
-				return result;
-			}
 			else {
+				if (li.isInteger() && !ri.isInteger()) {
+					I2FExp i2f = new I2FExp(b.left.line, b.left.pos, b.left);
+					i2f.child = b.left;
+					b.left = i2f;
+				}
+				if (!li.isInteger() && ri.isInteger()) {
+					I2FExp i2f = new I2FExp(b.right.line, b.right.pos, b.right);
+					i2f.child = b.right;
+					b.right = i2f;
+				}
+				
 				ExpInfo result = new ExpInfo(Type.type.INT);
 				result.complete = true;
 				result.isBool = true;
