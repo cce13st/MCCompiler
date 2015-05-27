@@ -1,6 +1,38 @@
 package Symbol;
 
-import Absyn.*;
+import java.util.ArrayList;
+
+import Absyn.ArgList;
+import Absyn.ArrayExp;
+import Absyn.Assign;
+import Absyn.AssignStmt;
+import Absyn.BinOpExp;
+import Absyn.CallExp;
+import Absyn.CallStmt;
+import Absyn.Case;
+import Absyn.CaseList;
+import Absyn.CompoundStmt;
+import Absyn.Decl;
+import Absyn.DeclList;
+import Absyn.Exp;
+import Absyn.FloatExp;
+import Absyn.ForStmt;
+import Absyn.FuncList;
+import Absyn.Function;
+import Absyn.IdExp;
+import Absyn.IdentList;
+import Absyn.Identifier;
+import Absyn.IfStmt;
+import Absyn.IntExp;
+import Absyn.ParamList;
+import Absyn.Program;
+import Absyn.RetStmt;
+import Absyn.Stmt;
+import Absyn.StmtList;
+import Absyn.SwitchStmt;
+import Absyn.Type;
+import Absyn.UnOpExp;
+import Absyn.WhileStmt;
 
 class TypeAnalyzer {
 	public Table table;
@@ -9,14 +41,13 @@ class TypeAnalyzer {
 
 	private Scope current;
 	private int currentIdx;
-
-	private Scope prev;
-	private int prevIdx;
+	private Stack scopeStack;
 
 	public TypeAnalyzer(Table t, Program p) {
 		this.table = t;
 		this.global = t.global;
 		root = p;
+		scopeStack = new Stack();
 	}
 
 	public void startAnalysis() {
@@ -44,12 +75,12 @@ class TypeAnalyzer {
 	}
 
 	public void visit(FuncList fl) {
-		Scope prev = current;
+		currentIdx = 0;
 		for (int i = 0; i < fl.length; i++) {
-			current = prev.descend.get(i);
+			ScopeStore();
 			visit(fl.get(i));
+			ScopeRecovery();
 		}
-		current = prev;
 	}
 
 	public void visit(Decl d) {
@@ -119,6 +150,7 @@ class TypeAnalyzer {
 		else if (s instanceof IfStmt) {
 			IfStmt i = (IfStmt) s;
 			ExpInfo condInfo = visit(i.cond);
+			
 			if (condInfo == null || !condInfo.isBoolean()) {
 				StaticError.NotConditionExp(i.cond.line, i.cond.pos);
 			}
@@ -153,7 +185,7 @@ class TypeAnalyzer {
 		else if (s instanceof SwitchStmt) {
 			SwitchStmt sw = (SwitchStmt) s;
 			if (!sw.id.s.isDeclared()) {
-				StaticError.VarNotDeclared(sw.id.s, current, sw.id.s.line, sw.id.s.pos);
+				StaticError.VarNotDeclared(sw.id.s, current, sw.id.line, sw.id.pos);
 			}
 			visit(sw.clist);
 		}
@@ -167,6 +199,10 @@ class TypeAnalyzer {
 			Function f = table.funcMap.get(funcScope.loc);
 			if (r.exp != null) {
 				ExpInfo retInfo = visit(r.exp);
+				
+				if(retInfo == null)
+					return;
+				
 				if (retInfo.type != f.type.ty) {
 					if (retInfo.type == Type.type.INT)
 						return;
@@ -243,17 +279,13 @@ class TypeAnalyzer {
 				return result;
 			}
 			else if (b.op == BinOpExp.Op.EQEQ || b.op == BinOpExp.Op.NOTEQ) {
-				if (li.type != ri.type) {
-					System.err.println("Two side not compatible");
-					return null;
-				}
-				ExpInfo result = new ExpInfo(null);
+				ExpInfo result = new ExpInfo(Type.type.INT);
 				result.complete = true;
 				result.isBool = true;
 				return result;
 			}
 			else {
-				ExpInfo result = new ExpInfo(null);
+				ExpInfo result = new ExpInfo(Type.type.INT);
 				result.complete = true;
 				result.isBool = true;
 				return result;
@@ -275,19 +307,81 @@ class TypeAnalyzer {
 				ArgList al = c.args;
 				ParamList pl = f.paramList;
 				
+				if (pl.length != al.length) {
+					StaticError.ArgsNumber(c.funcName, c.line, c.pos);
+					return null;
+				}
+				
+				boolean valid = true;
+				
 				for (int i=0; i<al.length; i++) {
-					ExpInfo argInfo = visit(al.get(i));
-					Type paramType = pl.tlist.get(i);
-					
-					if (argInfo == null) {
-						System.err.println("argument expression does not exist");
+					Exp arg = al.get(i);
+
+					// Check Array Pointer passing
+					if (arg instanceof IdExp) {
+						Symbol s = ((IdExp) arg).s;
+						
+						s = checkDeclared(current, s);
+						if (!s.isDeclared()) {
+							StaticError.VarNotDeclared(s, current, s.line, s.pos);
+							valid = false;
+							continue;
+						}
+						
+						boolean paramArray;
+						if (pl.ilist.get(i).index == null)
+							paramArray = false;
+						else
+							paramArray = true;
+
+						if (paramArray != (s.array > 0)) {
+							StaticError.NotArrayArg(s.line, s.pos);
+							valid = false;
+							continue;
+						}
+
+						Type paramType = pl.tlist.get(i);
+
+						// Type checking with parameter type
+						if (s.type != paramType.ty) {
+							StaticError.TypeMismatched(paramType.ty, arg.line, arg.pos);
+							valid = false;
+							continue;
+						}
 					}
-					
-					// Type checking with parameter type
-					if (argInfo.type != paramType.ty) {
-						System.err.println("Type mismatched parameter and argument");
+					else {
+						ExpInfo argInfo = visit(arg);
+						Type paramType = pl.tlist.get(i);
+						
+						if (argInfo == null) {
+							System.err.println("argument expression is invalid at line : " + arg.line + ", " + arg.pos);
+							valid = false;
+							continue;
+						}
+
+						boolean paramArray;
+						if (pl.ilist.get(i).index == null)
+							paramArray = false;
+						else
+							paramArray = true;
+						
+						if (paramArray) {
+							StaticError.NotArrayParam(arg.line, arg.pos);
+							valid = false;
+							continue;
+						}
+						
+						// Type checking with parameter type
+						if (argInfo.type != paramType.ty) {
+							StaticError.TypeMismatched(paramType.ty, arg.line, arg.pos);
+							valid = false;
+							continue;
+						}
 					}
 				}
+				
+				if (!valid)
+					return null;
 			}
 			
 			// Return the function's return type
@@ -326,7 +420,7 @@ class TypeAnalyzer {
 				return null;
 
 			if (!descend.isNumber()) {
-				System.err.println("Operation type mismatched - UnOp");
+				StaticError.TypeMismatched(Type.type.INT, u.line, u.pos);
 			}
 
 			return descend;
@@ -335,12 +429,33 @@ class TypeAnalyzer {
 	}
 
 	public void visit(Assign a) {
+		ExpInfo ri = visit(a.rhs);
+
+		// Check ID is declared
 		a.s = checkDeclared(current, a.s);
 		if (!a.s.isDeclared()) {
 			StaticError.VarNotDeclared(a.s, current, a.line, a.pos);
 			return;
 		}
+		
+		// Result of visiting RHS
+		if (ri == null) {
+			return;
+		}
+		
+		// Type of RHS and ID does not match
+		if (ri.type != a.s.type) {
+			if (ri.type == Type.type.INT) {
+				return;
+			}
+			if (ri.type == Type.type.FLOAT && a.s.type == Type.type.INT) {
+				StaticError.WarnConversion(a.s, a.s.line, a.s.pos);
+				return;
+			}
+			StaticError.TypeMismatched(a.s, ri.type, a.line, a.pos);
+		}
 
+		// If array index exists
 		if (a.index != null) {
 			ExpInfo ei = visit(a.index);
 			if (ei == null || !ei.isInteger()) {
@@ -349,6 +464,7 @@ class TypeAnalyzer {
 			}
 		}
 		
+		// Check ID is an array type
 		if(current.lookup(a.s.name).array == 0 && a.index != null) {
 			StaticError.VarNotArray(a.s, a.line, a.pos);
 			return;
@@ -357,30 +473,22 @@ class TypeAnalyzer {
 			StaticError.ArrayWithoutIndex(a.s, a.line, a.pos);
 			return;
 		}
-
-		ExpInfo ri = visit(a.rhs);
-		
-		if (ri == null) {
-			return;
-		}
-		
-		if (ri.type != a.s.type) {
-			if (ri.type == Type.type.INT)
-				return;
-			StaticError.TypeMismatched(a.s, ri.type, a.line, a.pos);
-		}
 	}
 
 	private void ScopeStore() {
-		prev = current;
-		prevIdx = currentIdx;
-		current = prev.descend.get(prevIdx);
+		/* Store current scope information into stack */
+//		System.err.println("Enter in ScopeStore - " + current.getLocName() + " : " + currentIdx);
+		scopeStack.putScope(current);
+		scopeStack.putIdx(currentIdx);
+		current = current.descend.get(currentIdx);
 		currentIdx = 0;
+//		System.err.println("Now in Scope - " + current.getLocName() + " : " + currentIdx);
 	}
 
 	private void ScopeRecovery() {
-		current = prev;
-		currentIdx = prevIdx++;
+		current = scopeStack.popScope();
+		currentIdx = scopeStack.popIdx()+1;
+//		System.err.println("Enter in ScopeRecovery - " + current.getLocName() + " : " + currentIdx);
 	}
 	
 	private Symbol checkDeclared(Scope current, Symbol target) {
@@ -422,5 +530,35 @@ class ExpInfo {
 
 	public boolean isBoolean() {
 		return isBool;
+	}
+}
+
+class Stack {
+	private ArrayList<Scope> scopeList;
+	private ArrayList<Integer> idxList;
+	private int length;
+	
+	public Stack() {
+		scopeList = new ArrayList<Scope>();
+		idxList = new ArrayList<Integer>();
+		length = 0;
+	}
+	
+	public Scope popScope() {
+		Scope s = scopeList.remove(length-1);
+		return s;
+	}
+	public int popIdx() {
+		Integer i = idxList.remove(length-1);
+		length--;
+		return i.intValue();
+	}
+	
+	public void putScope(Scope s) {
+		scopeList.add(s);
+	}
+	public void putIdx(int i) {
+		idxList.add(i);
+		length++;
 	}
 }

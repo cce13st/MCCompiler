@@ -1,5 +1,6 @@
 package Symbol;
 
+import Absyn.Exp;
 import Absyn.Function;
 import Absyn.Type;
 
@@ -31,6 +32,23 @@ public class StaticError {
 				+ type);
 	}
 	
+	public static void TypeMismatched(Type.type type, int line, int pos) {
+		System.out.println(Error() + LinePos(line, pos) + "Type mismatched in expression with type "
+				+ type);
+	}
+	
+	public static void NotArrayArg(int line, int pos) {
+		System.out.println(Error() + LinePos(line, pos) + "Argument type mismatched between array and value :");
+	}
+
+	public static void NotArrayParam(int line, int pos) {
+		System.out.println(Error() + LinePos(line, pos) + "Argument type mismatched between array and value");
+	}
+	
+	public static void ArgsNumber(String funcName, int line, int pos) {
+		System.out.println(Error() + LinePos(line, pos) + "Number of argument does not match to function declaration " + funcName);
+	}
+	
 	public static void NotInteger(int line, int pos) {
 		System.out.println(Error() + LinePos(line, pos) + "Not integer index");
 	}
@@ -45,6 +63,10 @@ public class StaticError {
 
 	public static void WarnNoRet(String funcName, int line, int pos) {
 		System.out.println(Warning() + LinePos(line, pos) + "Function has no return value at function " + funcName);
+	}
+	
+	public static void WarnConversion(Symbol x, int line, int pos) {
+		System.out.println(Warning() + LinePos(line, pos) + "Float value is assigned into integer variable" + br(x));
 	}
 	
 	private static String br(Symbol x) {
