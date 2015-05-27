@@ -64,7 +64,7 @@ class TypeAnalyzer {
 				StaticError.DuplicatedDeclaration(s, current, s.line, s.pos);
 			}
 			if (s.type != type.ty) {
-				StaticError.TypeMismatched(s, type.ty);
+				StaticError.TypeMismatched(s, type.ty, s.line, s.pos);
 			}
 		}
 	}
@@ -163,8 +163,20 @@ class TypeAnalyzer {
 		}
 		else if (s instanceof RetStmt) {
 			RetStmt r = (RetStmt) s;
-			if (r.exp != null)
-				visit(r.exp);
+			Scope funcScope = current.getFuncScope();
+			Function f = table.funcMap.get(funcScope.loc);
+			if (r.exp != null) {
+				ExpInfo retInfo = visit(r.exp);
+				if (retInfo.type != f.type.ty) {
+					if (retInfo.type == Type.type.INT)
+						return;
+					
+					StaticError.WarnRetType(f.id, r.line, r.pos);
+				}
+			}
+			else {
+				StaticError.WarnNoRet(f.id, r.line, r.pos);
+			}
 		}
 	}
 
@@ -188,6 +200,10 @@ class TypeAnalyzer {
 			}
 
 			// The type of array symbol
+			if(current.lookup(a.s.name).array == 0) {
+				StaticError.VarNotArray(a.s, a.line, a.pos);
+				return null;
+			}
 
 			Exp index = ((ArrayExp) e).index;
 			ExpInfo ei = visit(index);
@@ -200,7 +216,6 @@ class TypeAnalyzer {
 			return new ExpInfo(a.s.type);
 		} 
 		else if (e instanceof BinOpExp) {
-			// 양쪽 모두 number인지 확인
 
 			BinOpExp b = (BinOpExp) e;
 			ExpInfo li = visit(b.left);
@@ -227,6 +242,16 @@ class TypeAnalyzer {
 				result.complete = true;
 				return result;
 			}
+			else if (b.op == BinOpExp.Op.EQEQ || b.op == BinOpExp.Op.NOTEQ) {
+				if (li.type != ri.type) {
+					System.err.println("Two side not compatible");
+					return null;
+				}
+				ExpInfo result = new ExpInfo(null);
+				result.complete = true;
+				result.isBool = true;
+				return result;
+			}
 			else {
 				ExpInfo result = new ExpInfo(null);
 				result.complete = true;
@@ -240,7 +265,7 @@ class TypeAnalyzer {
 			// Check if function declared
 			Function f = table.funcMap.get(c.funcName);
 			if (f == null) {
-				StaticError.FuncNotDeclared(c.funcName, current);
+				StaticError.FuncNotDeclared(c.funcName, current, c.line, c.pos);
 				return null;
 			}
 			else
@@ -284,6 +309,11 @@ class TypeAnalyzer {
 				return null;
 			}
 
+			if(current.lookup(i.s.name).array != 0) {
+				StaticError.ArrayWithoutIndex(i.s, i.line, i.pos);
+				return null;
+			}
+
 			ExpInfo ei = new ExpInfo(i.s.type);
 			return ei;
 		} 
@@ -308,13 +338,24 @@ class TypeAnalyzer {
 		a.s = checkDeclared(current, a.s);
 		if (!a.s.isDeclared()) {
 			StaticError.VarNotDeclared(a.s, current, a.line, a.pos);
+			return;
 		}
 
 		if (a.index != null) {
 			ExpInfo ei = visit(a.index);
 			if (ei == null || !ei.isInteger()) {
 				StaticError.NotInteger(a.line, a.pos);
+				return;
 			}
+		}
+		
+		if(current.lookup(a.s.name).array == 0 && a.index != null) {
+			StaticError.VarNotArray(a.s, a.line, a.pos);
+			return;
+		}
+		if(current.lookup(a.s.name).array != 0 && a.index == null) {
+			StaticError.ArrayWithoutIndex(a.s, a.line, a.pos);
+			return;
 		}
 
 		ExpInfo ri = visit(a.rhs);
@@ -324,7 +365,9 @@ class TypeAnalyzer {
 		}
 		
 		if (ri.type != a.s.type) {
-			StaticError.TypeMismatched(a.s, ri.type);
+			if (ri.type == Type.type.INT)
+				return;
+			StaticError.TypeMismatched(a.s, ri.type, a.line, a.pos);
 		}
 	}
 

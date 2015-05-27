@@ -88,4 +88,16 @@ public class Scope {
 		
 		return locName;
 	}
+
+	public Scope getFuncScope() {
+		Scope current = this;
+		
+		while(!current.isFunc) {
+			current = current.outer;
+			if (current.loc == "GLOBAL")
+				break;
+		}
+		
+		return current;
+	}
 }

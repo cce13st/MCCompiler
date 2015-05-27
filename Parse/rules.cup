@@ -177,16 +177,16 @@ CallStmt ::=
 
 Call ::=
 		id:i LPAREN RPAREN
-		{: LocValue iv = (LocValue) i; RESULT = new CallExp(0, (String) iv.value); :}
+		{: LocValue iv = (LocValue) i; RESULT = new CallExp(iv.line, iv.pos, (String) iv.value); :}
 	|	id:i LPAREN ArgList:args RPAREN
-		{: LocValue iv = (LocValue) i; RESULT = new CallExp(0, (String) iv.value, (ArgList) args); :}
+		{: LocValue iv = (LocValue) i; RESULT = new CallExp(iv.line, iv.pos, (String) iv.value, (ArgList) args); :}
 	;
 
 RetStmt ::=
-		RETURN Expr:e SEMICOLON
-		{: RESULT = new RetStmt(0, (Exp) e); :}
-	|	RETURN SEMICOLON
-		{: RESULT = new RetStmt(0); :}
+		RETURN:ret Expr:e SEMICOLON
+		{: LocValue lv = (LocValue) ret; RESULT = new RetStmt(lv.line, lv.pos, (Exp) e); :}
+	|	RETURN:ret SEMICOLON
+		{: LocValue lv = (LocValue) ret; RESULT = new RetStmt(lv.line, lv.pos); :}
 	;
 
 WhileStmt ::=

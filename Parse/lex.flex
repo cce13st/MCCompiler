@@ -32,7 +32,7 @@ whiteSpace = [ \n\t\r]
 /* Reserved */
 "if"							{ return symbol(sym.IF); }
 "else"							{ return symbol(sym.ELSE); }
-"return"						{ return symbol(sym.RETURN); }
+"return"						{ return symbol(sym.RETURN, "return"); }
 "while"							{ return symbol(sym.WHILE); }
 "do"							{ return symbol(sym.DO); }
 "for"							{ return symbol(sym.FOR); }

@@ -4,6 +4,9 @@ float x,y,z,w,a;
 int main() {
     int xzy[1];
     xzy[4.3] = 1;
+    xzy = 1123;
+
+    return;
 }
 
 float a1(int a, int b, float c) {
@@ -14,9 +17,11 @@ float a1(int a, int b, float c) {
 
 float a2() {
     int var;
+    z = 1;
     var = 1;
     v = d(x, 3, 4+var);
     var = a1(1,2,3.4);
+    var = var[123];
 
     while ( asdf != 0 ) {
         var = 1;
