@@ -46,7 +46,7 @@ public class StaticError {
 	}
 	
 	public static void ArgsNumber(String funcName, int line, int pos) {
-		System.out.println(Error() + LinePos(line, pos) + "Number of argument does not match to function declaration " + funcName);
+		System.out.println(Error() + LinePos(line, pos) + "Number of argument does not match to function declaration [" + funcName + "]");
 	}
 	
 	public static void NotInteger(int line, int pos) {

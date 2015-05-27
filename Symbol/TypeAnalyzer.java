@@ -449,7 +449,7 @@ class TypeAnalyzer {
 				return;
 			}
 			if (ri.type == Type.type.FLOAT && a.s.type == Type.type.INT) {
-				StaticError.WarnConversion(a.s, a.s.line, a.s.pos);
+				StaticError.WarnConversion(a.s, a.line, a.pos);
 				return;
 			}
 			StaticError.TypeMismatched(a.s, ri.type, a.line, a.pos);
