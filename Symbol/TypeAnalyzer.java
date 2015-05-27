@@ -58,9 +58,11 @@ class TypeAnalyzer {
 		currentIdx = 0;
 
 		System.out.println("================ Type analysis start ================");
-		System.out.println("");
 		visit(root);
 		
+
+		System.out.println("================ Type analysis end ================");
+		System.out.println("");
 		return resultValidity;
 	}
 

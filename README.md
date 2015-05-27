@@ -24,3 +24,12 @@ Replace 'your_test_file' to anything you want.
 
 At the end of parsing, parser generates 2 files as a result.
 One is "tree.txt", which is miniC code from visiting AST. Another is "table.txt", symbol table for given code.
+
+Type Analysis
+Compiler does type analysis, and it prints a modified AST when input program is correctly typed.
+Type analysis prints list of error like following.
+
+> [Error/Warning]     Line <line number>, <column number> : <description>
+
+Modified AST's have type conversion, int to float, or float to int.
+You can see casting expressions like C in a modified AST as result.
