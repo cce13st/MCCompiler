@@ -24,7 +24,7 @@ public class Main {
 		if (argv.length > 0)
 			filename = argv[0];
 		else
-			filename = "Test5";
+			filename = "Test7";
 
 		BufferedReader in = new BufferedReader(new FileReader(filename));
 		Lexer l = new Lexer(in);

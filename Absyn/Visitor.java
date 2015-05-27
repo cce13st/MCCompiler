@@ -39,10 +39,6 @@ public class Visitor {
 			System.out.print("]");
 		}
 		System.out.print(" = ");
-		if (a.i2f)
-			System.out.print("(float)");
-		if (a.f2i)
-			System.out.print("(int)");
 		visit(a.rhs);
 	}
 	
@@ -85,6 +81,14 @@ public class Visitor {
 			UnOpExp u = (UnOpExp) e;
 			System.out.print("-");
 			visit(u.exp);
+		}
+		else if (e instanceof F2IExp) {
+			System.out.print("(int) ");
+			visit(((F2IExp) e).child);
+		}
+		else if (e instanceof I2FExp) {
+			System.out.print("(float) ");
+			visit(((I2FExp) e).child);
 		}
 		if (e.paren)
 			System.out.print(")");

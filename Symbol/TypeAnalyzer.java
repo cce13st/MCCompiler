@@ -467,11 +467,11 @@ class TypeAnalyzer {
 		// Type of RHS and ID does not match
 		if (ri.type != a.s.type) {
 			if (ri.type == Type.type.INT) {
-				a.i2f = true;
+				a.addI2F();
 				return;
 			}
 			if (ri.type == Type.type.FLOAT && a.s.type == Type.type.INT) {
-				a.f2i = true;
+				a.addF2I();
 				StaticError.WarnConversion(a.s, a.line, a.pos);
 				return;
 			}
