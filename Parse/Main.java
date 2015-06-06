@@ -24,7 +24,7 @@ public class Main {
 		if (argv.length > 0)
 			filename = argv[0];
 		else
-			filename = "input.txt";
+			filename = "tests/input.txt";
 
 		BufferedReader in = new BufferedReader(new FileReader(filename));
 		Lexer l = new Lexer(in);
