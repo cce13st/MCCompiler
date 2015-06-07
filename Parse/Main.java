@@ -43,11 +43,14 @@ public class Main {
 		
 		outstream = new PrintStream(new FileOutputStream(FileDescriptor.out));
         System.setOut(outstream);  
+
         
-		boolean result = t.typeAnalysis(a);
+		/*
+        boolean result = t.typeAnalysis(a);
 		
 		if (result) {
 			v.printAST();
 		}
+        */
 	}
 }

@@ -4,6 +4,7 @@ import java.util.HashMap;
 
 import Absyn.Function;
 import Absyn.Program;
+import Compile.CodeGenerator;
 
 public class Table {
 	public Scope global;

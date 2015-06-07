@@ -5,6 +5,7 @@ Project have 5 directories
  - Parse : This directory has 'Main' class for execution and lexer/parser classes.
  - Symbol : Symbol, symbol table, and its interfaces
  - libs : It has library files, JFlex and CUP.
+ - tests : Sample input and result files for type analysis.
 
 
 Building the project
