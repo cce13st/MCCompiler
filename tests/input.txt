@@ -3,9 +3,16 @@ float x,y,z,w,a;
 
 int main() {
     int xzy[1];
+    int arr[6];
+    float flt[6];
+    float fff;
     xzy[4.3] = 1;
     xzy = 1123;
     asdf = 2;
+
+    flt[4] = 4;
+
+    fff = x+4 + arr[3];
 
     xzy[0] = 1.2;
 
@@ -14,13 +21,22 @@ int main() {
 
 float a1(int a, int b, float c) {
     int x, y;
-    float x;
-    x = y;
-    aaa = 213.34;
+    x = y + z;
+
+    if(x>y) {
+        int myvar;
+        float x;
+        x = 1;
+        myvar = d + c + x + y;
+    }
+    else {
+        int myvar;
+        myvar = 2;
+    }
 }
 
 float a2() {
-    int var;
+    int var, x;
     z = 1;
     var = 1;
     v = d(x, 3, 4+var);

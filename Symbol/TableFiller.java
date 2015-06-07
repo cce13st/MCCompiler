@@ -38,9 +38,9 @@ public class TableFiller {
 		for (int i = 0; i < il.length; i++) {
 			Identifier id = il.get(i);
 			if (id.index == null)
-				id.s = new Symbol(type.ty, id.s.name, 0, true, id.line, id.pos);
+				id.s = new Symbol(type.ty, id.s.name, 0, true, 0, id.line, id.pos);
 			else
-				id.s = new Symbol(type.ty, id.s.name, id.index, true, id.line, id.pos);
+				id.s = new Symbol(type.ty, id.s.name, id.index, true, 0, id.line, id.pos);
 			current.addBind(id.s.name, id.s);
 		}
 	}
@@ -52,6 +52,7 @@ public class TableFiller {
 	}
 
 	public void visit(Function f) {
+        Symbol.clearLoc();
 		if (table.funcMap.get(f.id) == null)
 			table.addFunction(f);
 		else {
@@ -72,12 +73,12 @@ public class TableFiller {
 			Identifier id = pl.getIdentifier(i);
 			Type type = pl.getType(i);
 
-			Symbol s;
 			if (id.index == null)
-				s = new Symbol(type.ty, id.s.name, 0, false, id.line, id.pos);
+				id.s = new Symbol(type.ty, id.s.name, 0, false, i, id.line, id.pos);
 			else
-				s = new Symbol(type.ty, id.s.name, id.index, false, id.line, id.pos);
-			current.addBind(id.s.name, s);
+				id.s = new Symbol(type.ty, id.s.name, id.index, false, i, id.line, id.pos);
+
+			current.addBind(id.s.name, id.s);
 		}
 	}
 

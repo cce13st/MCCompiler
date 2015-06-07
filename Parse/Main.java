@@ -40,6 +40,7 @@ public class Main {
 		Table t = new Table();
 		t.fillTable(a);
 		t.printTable();
+		v.printAST();
 		t.typeAnalysis(a);
 		
 		

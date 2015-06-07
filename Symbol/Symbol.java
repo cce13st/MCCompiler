@@ -3,20 +3,26 @@ package Symbol;
 import Absyn.Type;
 
 public class Symbol {
-	public boolean init;
-	public Type.type type;
-	public String name;
-	public int array;
-	public boolean var;
+    /* Unique id generator */
+	private static int hiddenCnt = 1;
+
+    /* Current Location pointer(= Stack pointer) for each procedure) */
+    private static int locpoint = 0; 
+	
+	public boolean init;        // initialized
+	public Type.type type;      // INT or FLOAT
+	public String name;         // name
+	public int array;           // size of array, (if array=1, it is a simple variable)
+	public boolean var;         // if false, it is a parameter
 	
 	public int line;
 	public int pos;
 	
-	private boolean declared; /* Indicates whether this symbol does not exists (no declaration) */
-	private boolean duplicated = false;
+	private boolean declared;               /* Indicates whether this symbol does not exists (no declaration) */
+	private boolean duplicated = false;     /* Indicates whether this symbol has duplicated declaration */
 	
-	
-	public String hiddenId;
+	public int hiddenId = -1;               /* Unique id for each variable */
+    public int location = -1;               /* Relative address from SP */
 
 	public static Symbol newSymbol(String n) {
 		return new Symbol(n);
@@ -27,7 +33,7 @@ public class Symbol {
 		init = false;
 	}
 
-	public Symbol(Type.type t, String n, int size, boolean v, int l, int p) {
+	public Symbol(Type.type t, String n, int size, boolean v, int paramIdx, int l, int p) {
 		line = l;
 		pos = p;
 		
@@ -37,8 +43,21 @@ public class Symbol {
 		var = v;
 		
 		init = true;
-		
 		declared = true;
+		
+		hiddenId = hiddenCnt++;             // give a unique id
+        
+        if (var) {
+            /* If variable, just give a new location */
+            location = locpoint;                    
+            if (array == 0)
+                locpoint++;
+            else
+                locpoint += array;        
+        }
+        else {
+            location = -paramIdx-1;
+        }
 	}
 	
 	public String toString() {
@@ -64,4 +83,25 @@ public class Symbol {
 	public void setDuplicated(boolean d) {
 		this.duplicated = d;
 	}
+
+    public boolean isGlobal(Table table) {
+        Symbol s = table.global.lookup(this.name);
+
+        if (s == null)
+            return false;
+        
+        return this.hiddenId == s.hiddenId;
+	}
+
+    public String getHidden() {
+        if (hiddenId == -1)
+            return "#err";
+        else
+            return "@" + hiddenId;
+    }
+
+    public static void clearLoc() {
+        /* Clear location pointer, for new function procedure */
+        locpoint = 0;
+    }
 }

@@ -349,7 +349,7 @@ class TypeAnalyzer {
 					// Check Array Pointer passing
 					if (arg instanceof IdExp) {
 						Symbol s = ((IdExp) arg).s;
-						
+
 						if (!s.isDeclared()) {
 							StaticError.VarNotDeclared(s, current, s.line, s.pos);
 							resultValidity = false;
@@ -431,6 +431,8 @@ class TypeAnalyzer {
 		} 
 		else if (e instanceof IdExp) {
 			IdExp i = (IdExp) e;
+            System.out.println("====== i.s : " + i.s.name + ", isGlobal : " + i.s.isGlobal(table));
+						
 			if (!i.s.isDeclared()) {
 				StaticError.VarNotDeclared(i.s, current, i.line, i.pos);
 				resultValidity = false;
