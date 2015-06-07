@@ -32,7 +32,7 @@ public class Visitor {
 	}
 	
 	public void visit(Assign a) {
-		System.out.print(a.s + "<" + a.s.hiddenId + ">");
+		System.out.print(a.s + "<" + a.s.getHidden() + ">" + "{" + a.s.location + "}");
 		if (a.index != null) {
 			System.out.print("[");
 			visit(a.index);
@@ -71,7 +71,7 @@ public class Visitor {
 		}
 		else if (e instanceof IdExp) {
 			IdExp i = (IdExp) e;
-			System.out.print(i.s + "<" + i.s.hiddenId + ">");
+			System.out.print(i.s + "<" + i.s.getHidden() + ">{" + i.s.location + "}");
 		}
 		else if (e instanceof IntExp) {
 			IntExp i = (IntExp) e;
@@ -228,7 +228,7 @@ public class Visitor {
 	}
 	
 	public void visit(Identifier i) {
-		System.out.print(i.s + i.s.hiddenId);
+        System.out.print(i.s + "<" + i.s.getHidden() + ">" + "{" + i.s.location + "}");
 		if (i.index != null)
 			System.out.print("[" + i.index + "]");
 		else

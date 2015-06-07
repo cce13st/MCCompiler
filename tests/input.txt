@@ -3,9 +3,16 @@ float x,y,z,w,a;
 
 int main() {
     int xzy[1];
+    int arr[6];
+    float flt[6];
+    float fff;
     xzy[4.3] = 1;
     xzy = 1123;
     asdf = 2;
+
+    flt[4] = 4;
+
+    fff = x+4 + arr[3];
 
     xzy[0] = 1.2;
 
@@ -14,7 +21,7 @@ int main() {
 
 float a1(int a, int b, float c) {
     int x, y;
-    x = y;
+    x = y + z;
 
     if(x>y) {
         int myvar;
