@@ -22,4 +22,4 @@ Symbol/Symbol.class : Symbol/*.java
 		javac ${JFLAGS} Symbol/*.java
 
 clean :
-		rm -rf Absyn/*.class Symbol/*.class Parse/*.class; rm Parse/parser.java; rm Parse/sym.java; rm Parse/Lexer.java
+		rm -rf Absyn/*.class Symbol/*.class ErrorMsg/*.class Parse/*.class; rm Parse/parser.java; rm Parse/sym.java; rm Parse/Lexer.java

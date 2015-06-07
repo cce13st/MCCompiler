@@ -240,7 +240,6 @@ class TypeAnalyzer {
 			ArrayExp a = (ArrayExp) e;
 
 			// Array symbol declared?
-			a.s = checkDeclared(current, a.s);
 			if (!a.s.isDeclared()) {
 				StaticError.VarNotDeclared(a.s, current, a.s.line, a.s.pos);
 				resultValidity = false;
@@ -351,7 +350,6 @@ class TypeAnalyzer {
 					if (arg instanceof IdExp) {
 						Symbol s = ((IdExp) arg).s;
 						
-						s = checkDeclared(current, s);
 						if (!s.isDeclared()) {
 							StaticError.VarNotDeclared(s, current, s.line, s.pos);
 							resultValidity = false;
@@ -433,7 +431,6 @@ class TypeAnalyzer {
 		} 
 		else if (e instanceof IdExp) {
 			IdExp i = (IdExp) e;
-			i.s = checkDeclared(current, i.s);
 			if (!i.s.isDeclared()) {
 				StaticError.VarNotDeclared(i.s, current, i.line, i.pos);
 				resultValidity = false;
@@ -471,7 +468,6 @@ class TypeAnalyzer {
 		ExpInfo ri = visit(a.rhs);
 
 		// Check ID is declared
-		a.s = checkDeclared(current, a.s);
 		if (!a.s.isDeclared()) {
 			StaticError.VarNotDeclared(a.s, current, a.line, a.pos);
 			resultValidity = false;
@@ -535,19 +531,6 @@ class TypeAnalyzer {
 		current = scopeStack.popScope();
 		currentIdx = scopeStack.popIdx()+1;
 //		System.err.println("Enter in ScopeRecovery - " + current.getLocName() + " : " + currentIdx);
-	}
-	
-	private Symbol checkDeclared(Scope current, Symbol target) {
-		Symbol s = current.lookup(target.name);
-		if (s == null) {
-			target.setDeclared(false);
-			s = target;
-		}
-		else {
-			target = s;
-		}
-		
-		return s;
 	}
 }
 

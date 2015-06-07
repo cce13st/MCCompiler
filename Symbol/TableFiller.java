@@ -174,8 +174,9 @@ public class TableFiller {
 	
 	public void visit(Exp e) {
 		if (e instanceof ArrayExp) {
-			Exp index = ((ArrayExp) e).index;
-			visit(index);
+			ArrayExp a = (ArrayExp) e;
+            a.s = checkDeclared(current, a.s);
+			visit(a.index);
 		}
 		else if (e instanceof BinOpExp) {
 			BinOpExp b = (BinOpExp) e;
@@ -192,9 +193,15 @@ public class TableFiller {
 			UnOpExp u = (UnOpExp) e;
 			visit(u.exp);
 		}
+        else if (e instanceof IdExp) {
+            IdExp i = (IdExp) e;
+            i.s = checkDeclared(current, i.s);
+        }
 	}
 	
 	public void visit(Assign a) {
+        a.s = checkDeclared(current, a.s);
+
 		if (a.index != null)
 			visit(a.index);
 		

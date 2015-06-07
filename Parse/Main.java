@@ -40,14 +40,8 @@ public class Main {
 		Table t = new Table();
 		t.fillTable(a);
 		t.printTable();
+		t.typeAnalysis(a);
 		
-		outstream = new PrintStream(new FileOutputStream(FileDescriptor.out));
-        System.setOut(outstream);  
-        
-		boolean result = t.typeAnalysis(a);
 		
-		if (result) {
-			v.printAST();
-		}
 	}
 }

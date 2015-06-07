@@ -14,6 +14,9 @@ public class Symbol {
 	
 	private boolean declared; /* Indicates whether this symbol does not exists (no declaration) */
 	private boolean duplicated = false;
+	
+	
+	public String hiddenId;
 
 	public static Symbol newSymbol(String n) {
 		return new Symbol(n);
