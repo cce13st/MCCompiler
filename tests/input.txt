@@ -14,13 +14,22 @@ int main() {
 
 float a1(int a, int b, float c) {
     int x, y;
-    float x;
     x = y;
-    aaa = 213.34;
+
+    if(x>y) {
+        int myvar;
+        float x;
+        x = 1;
+        myvar = d + c + x + y;
+    }
+    else {
+        int myvar;
+        myvar = 2;
+    }
 }
 
 float a2() {
-    int var;
+    int var, x;
     z = 1;
     var = 1;
     v = d(x, 3, 4+var);

@@ -3,6 +3,8 @@ package Symbol;
 import Absyn.Type;
 
 public class Symbol {
+	private static int hiddenCnt = 0;
+	
 	public boolean init;
 	public Type.type type;
 	public String name;
@@ -16,7 +18,7 @@ public class Symbol {
 	private boolean duplicated = false;
 	
 	
-	public String hiddenId;
+	public String hiddenId = "#err";
 
 	public static Symbol newSymbol(String n) {
 		return new Symbol(n);
@@ -39,6 +41,8 @@ public class Symbol {
 		init = true;
 		
 		declared = true;
+		
+		hiddenId = "@" + hiddenCnt++;
 	}
 	
 	public String toString() {

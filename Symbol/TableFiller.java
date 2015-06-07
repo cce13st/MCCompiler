@@ -72,12 +72,12 @@ public class TableFiller {
 			Identifier id = pl.getIdentifier(i);
 			Type type = pl.getType(i);
 
-			Symbol s;
 			if (id.index == null)
-				s = new Symbol(type.ty, id.s.name, 0, false, id.line, id.pos);
+				id.s = new Symbol(type.ty, id.s.name, 0, false, id.line, id.pos);
 			else
-				s = new Symbol(type.ty, id.s.name, id.index, false, id.line, id.pos);
-			current.addBind(id.s.name, s);
+				id.s = new Symbol(type.ty, id.s.name, id.index, false, id.line, id.pos);
+
+			current.addBind(id.s.name, id.s);
 		}
 	}
 
