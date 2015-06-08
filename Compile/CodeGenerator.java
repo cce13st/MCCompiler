@@ -71,6 +71,10 @@ public class CodeGenerator {
 	private String Reg(int num) {
 		return "VR(" + num + ")";
 	}
+
+    private String RegRef(int num) {
+        return "VR(" + num + ")@";
+    }
 	
 	private String Mem(int num) {
 		return "MEM(" + num + ")";
@@ -300,7 +304,11 @@ public class CodeGenerator {
     }
 
     private String emit(BinOpExp ast) {
-
+        int LReg = ast.left.reg;
+        int RReg = ast.right.reg;
+        int newReg = newRegister();
+        makeCode(op, RegRef(LReg), RegRef(RReg), Reg(newReg)); 
+        ast.reg = newReg;
     }
 
     private String emit(CallExp ast) {
@@ -308,7 +316,8 @@ public class CodeGenerator {
     }
 
     private String emit(FloatExp ast) {
-
+        int newReg = newRegister();
+        makeCode(MOVE, Val(ast.value), Reg(newReg));
     }
 
     private String emit(IdExp ast) {
@@ -316,15 +325,24 @@ public class CodeGenerator {
     }
 
     private String emit(IntExp ast) {
-
+        int newReg = newRegister();
+        makeCode(MOVE, Val(ast.value), Reg(newReg));
     }
 
     private String emit(UnOpExp ast) {
+        int reg = ast.exp.reg;
+        int newReg = newRegister();
 
+        makeCode(MUL, Val(-1), RegRef(reg), Reg(newReg);
+
+        ast.reg = newReg;
     }
 
     private String emit(F2IExp ast) {
+        int reg = ast.exp.reg;
+        int newReg = newRegister();
 
+        makeCode(F2I, Reg(reg), Reg(newReg));
     }
 
     private String emit(I2FExp ast) {
