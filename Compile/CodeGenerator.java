@@ -38,25 +38,37 @@ public class CodeGenerator {
     private final String READI = "READI";
     private final String READF = "READF";
     private final String WRITE = "WRITE";
+    
+    
+    //TODO : Will we make EBP, ESP ?
+    //TODO : For ArrayExp, make indirect memory access. Is it enough that 'M(M(idx)@)'?
 
 
     public CodeGenerator(Program p, Table t) {
 		this.root = p;
         this.table = t;
 	}
-			
+	
+    public void printInstr() {
+    	System.out.println(emit());
+    }
 	
 	public String emit() {
         String decl = "AREA\t\tSP\n";
         decl += "AREA\t\tFP\n";
         decl += "AREA\t\tVR\n";
-        decl += "AREA\t\tMEM\n";
+        decl += "AREA\t\tMEM\n\n";
 
-        String instr = "LAB\tSTART\n";
+        String instr = "LAB\t\tSTART\n";
         //TODO initialize SP, FP
-        //TODO call main function
+        
+        /* Find main function and jump to it */
+        Function main = table.funcMap.get("FUNCTIONmain");
+        if (main != null)
+        	instr += makeCode(JMP, "main");
+        
         instr += emit(this.root);
-        instr += "LAB\tEND\n";
+        instr += "LAB\t\tEND\n";
         return decl + instr;
 	}
 
@@ -185,7 +197,7 @@ public class CodeGenerator {
 
     private String emit(Function ast) {
         String fname = "FUNCTION" + ast.id;
-        String instr = makeCode(LAB, fname);
+        String instr = "\n" + makeCode(LAB, fname);
 
         if (ast.paramList != null) {
             instr += emit(ast.paramList);
@@ -251,8 +263,27 @@ public class CodeGenerator {
     }
 
     private String emit(Assign ast) {
-        //TODO
-        return "";
+    	String instr = "";
+    	Symboll s = ast.s;
+    	int offset = s.getOffset();
+    	int baseAddr = 0;
+    	
+    	if (!s.isGlobal(table))
+    		baseAddr = 0; //TODO : set a ebp of current procedure
+    	
+    	instr += emit(ast.rhs);
+    	
+    	int newReg = newRegister();
+    	int rhsReg = ast.rhs.reg;
+    	
+    	if (ast.index == null) {
+    		instr += makeCode(MOVE, RegRef(rhsReg), Mem(baseAddr + s.getOffset()));
+    	}
+    	
+    	if (ast.index != null)
+    		instr += emit(ast.index);
+    	
+        return instr;
     }
 
     private String emit(CallStmt ast) {
@@ -293,6 +324,7 @@ public class CodeGenerator {
         instr += makeCode(JMPZ, Reg(ast.cond.reg), "F" + branchName);
         instr += emit(ast.thenClause);
         instr += makeCode(JMP, branchName + "EXIT");
+        //TODO : What is this F?
         instr += makeCode(LAB, "F" + branchName);
         if (ast.elseClause != null) {
             instr += emit(ast.elseClause);

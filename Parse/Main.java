@@ -8,6 +8,7 @@ import java.io.PrintStream;
 
 import Absyn.Program;
 import Absyn.Visitor;
+import Compile.CodeGenerator;
 import Symbol.Table;
 
 public class Main {
@@ -43,6 +44,8 @@ public class Main {
 		v.printAST();
 		t.typeAnalysis(a);
 		
-		
+		System.setOut(new PrintStream(new FileOutputStream(FileDescriptor.out)));
+		CodeGenerator gen = new CodeGenerator(a, t);
+		gen.printInstr();
 	}
 }
