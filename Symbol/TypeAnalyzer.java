@@ -61,9 +61,9 @@ class TypeAnalyzer {
 
 	public void visit(Decl d) {
 		Type type = d.type;
-		SymbolList sl = d.slist;
+		ArrayList<Symboll> sl = d.slist;
 
-		for (int i = 0; i < sl.length; i++) {
+		for (int i = 0; i < sl.size(); i++) {
 			Symboll s = sl.get(i);
 
 			if (s.isDuplicated()) {

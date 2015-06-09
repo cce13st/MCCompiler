@@ -1,6 +1,7 @@
 package Absyn;
 
 import Symbol.Symboll;
+import java.util.ArrayList;
 
 public class Visitor {
 	
@@ -206,8 +207,8 @@ public class Visitor {
 	public void visit(Decl d) {
 		visit(d.type);
 
-        SymbolList sl = d.slist;
-        for (int i=0; i<sl.length; i++) {
+        ArrayList<Symboll> sl = d.slist;
+        for (int i=0; i<sl.size(); i++) {
             if(i > 0)
                 System.out.print(", ");
 

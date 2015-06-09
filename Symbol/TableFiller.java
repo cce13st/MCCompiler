@@ -1,6 +1,7 @@
 package Symbol;
 
 import Absyn.*;
+import java.util.ArrayList;
 
 public class TableFiller {
 	public Table table;
@@ -33,13 +34,13 @@ public class TableFiller {
 
 	public void visit(Decl d) {
 		Type type = d.type;
-		SymbolList sl = d.slist;
+		ArrayList<Symboll> sl = d.slist;
 
-		for (int i = 0; i < sl.length; i++) {
+		for (int i = 0; i < sl.size(); i++) {
 			Symboll id = sl.get(i);
 			
 			id = new Symboll(type.ty, id.name, id.array, true, i, id.line, id.pos);
-			sl.replace(i, id);
+			sl.set(i, id);
 			
 			current.addBind(id.name, id);
 		}

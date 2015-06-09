@@ -139,14 +139,15 @@ public class CodeGenerator {
 	}
 
     private String emit(DeclList ast) {
-        String instr = pushStack(ast.length);
-
+    	String instr = "";
+    	
         Iterator<Decl> iter = ast.list.iterator();
         Decl item;
         while (iter.hasNext()) {
             item = iter.next();
             instr += emit(item);
         }
+        
         return instr;
     }
 
@@ -159,18 +160,25 @@ public class CodeGenerator {
             item = iter.next();
             instr += emit(item);
         }
+        
         return instr;
     }
 
     private String emit(Decl ast) {
     	String instr = "";
+    	int size = 0;
     	
-    	Iterator<Symboll> iter = ast.slist.list.iterator();
+    	Iterator<Symboll> iter = ast.slist.iterator();
     	Symboll item;
     	while (iter.hasNext()) {
     		item = iter.next();
-    		instr += emit(item);
+    		if (item.array > 0)
+    			size += item.array;
+    		else
+    			size += 1;
     	}
+    	
+    	instr += pushStack(size);
     	
         return instr;
     }

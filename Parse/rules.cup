@@ -3,6 +3,7 @@ package Parse;
 import java_cup.runtime.Symbol;
 import Symbol.Symboll;
 import Absyn.*;
+import java.util.ArrayList;
 
 /* Terminal Symbols */
 terminal INT, FLOAT;
@@ -64,14 +65,14 @@ FuncList ::=
 
 Declaration ::=
 		Type:t IdentList:il SEMICOLON
-		{: RESULT = new Decl(0, (Type) t, (SymbolList) il); :}
+		{: RESULT = new Decl(0, (Type) t, (ArrayList<Symboll>) il); :}
 	;
 
 IdentList ::=
 		identifier:i
-		{: SymbolList il = new SymbolList(); il.add((Symboll) i); RESULT = il; :}
+		{: ArrayList<Symboll> il = new ArrayList<Symboll>(); il.add((Symboll) i); RESULT = il; :}
 	|	IdentList:il COMMA identifier:i
-		{: ((SymbolList) il).add((Symboll) i); RESULT = il; :}
+		{: ((ArrayList<Symboll>) il).add((Symboll) i); RESULT = il; :}
 	;
 
 identifier ::=

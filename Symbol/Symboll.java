@@ -12,7 +12,7 @@ public class Symboll {
 	public boolean init;        // initialized
 	public Type.type type;      // INT or FLOAT
 	public String name;         // name
-	public int array;           // size of array, (if array=1, it is a simple variable)
+	public int array = -1;           // size of array, (if array=1, it is a simple variable)
 	public boolean var;         // if false, it is a parameter
 	
 	public int line;
