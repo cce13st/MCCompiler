@@ -197,14 +197,18 @@ public class CodeGenerator {
     }
 
     private String emit(ParamList ast) {
+    	/* This is a leaf node! */
         String instr = "";
+        
+        /*
         Iterator<Symboll> iter = ast.slist.iterator();
         
         Symboll item;
         while (iter.hasNext()) {
             item = iter.next();
-            instr += emit(item);
         }
+        */
+        
         return instr;
     }
 
@@ -351,8 +355,29 @@ public class CodeGenerator {
 	}
 
     private String emit(ArrayExp ast) {
-    	
-    	return "";
+        String instr = "";
+        Symboll s = ast.s;
+        int offset = s.getOffset();
+        int baseAddr = 0;
+        
+        instr += emit(ast.index);
+
+        int newReg = newRegister();
+        int offsetReg = newRegister();
+        int indexResult = ast.index.reg;
+
+        if (!s.isGlobal(table)) {
+            baseAddr = 0; //TODO : Set current ebp 
+        }
+        
+        instr += makeCode(MOVE, Value(baseAddr), Reg(offsetReg));
+        instr += makeCode(ADD, RegRef(offsetReg), RegRef(indexResult), Reg(offsetReg));
+        instr += makeCode(MOVE, "M(" + "VR(" + offsetReg + ")@" + ")@", Reg(newReg));
+//TODO: No Helper function
+//        instr += makeCode(MOVE, MemRef(RegRef(offsetReg)), Reg(newReg));
+
+        ast.reg = newReg;
+        return instr;
     }
 
     private String emit(BinOpExp ast) {
@@ -447,7 +472,20 @@ public class CodeGenerator {
     }
 
     private String emit(IdExp ast) {
-        return "";
+        String instr = "";
+        Symboll s = ast.s;
+        int offset = s.getOffset();
+        int baseAddr = 0;
+
+        int newReg = newRegister();
+
+        if (!s.isGlobal(table)) {
+            baseAddr = 0; //TODO : Set current ebp 
+        }
+        instr += makeCode(MOVE, MemRef(baseAddr + offset), Reg(newReg));
+
+        ast.reg = newReg;
+        return instr;
     }
 
     private String emit(IntExp ast) {
