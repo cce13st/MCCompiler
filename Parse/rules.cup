@@ -1,6 +1,7 @@
 package Parse;
 
 import java_cup.runtime.Symbol;
+import Symbol.Symboll;
 import Absyn.*;
 
 /* Terminal Symbols */
@@ -63,21 +64,21 @@ FuncList ::=
 
 Declaration ::=
 		Type:t IdentList:il SEMICOLON
-		{: RESULT = new Decl(0, (Type) t, (IdentList) il); :}
+		{: RESULT = new Decl(0, (Type) t, (SymbolList) il); :}
 	;
 
 IdentList ::=
 		identifier:i
-		{: IdentList il = new IdentList(); il.add((Identifier) i); RESULT = il; :}
+		{: SymbolList il = new SymbolList(); il.add((Symboll) i); RESULT = il; :}
 	|	IdentList:il COMMA identifier:i
-		{: ((IdentList) il).add((Identifier) i); RESULT = il; :}
+		{: ((SymbolList) il).add((Symboll) i); RESULT = il; :}
 	;
 
 identifier ::=
 		id:i
-		{: LocValue iv = (LocValue) i; RESULT = new Identifier(iv.line, iv.pos, (String) iv.value); :}
+		{: LocValue iv = (LocValue) i; RESULT = new Symboll(iv.line, iv.pos, (String) iv.value, 0); :}
 	|	id:i LBRACK intnum:i2 RBRACK
-		{: LocValue iv = (LocValue) i; LocValue i2v = (LocValue) i2; RESULT = new Identifier(iv.line, iv.pos, (String) iv.value, (Integer) i2v.value); :}
+		{: LocValue iv = (LocValue) i; LocValue i2v = (LocValue) i2; RESULT = new Symboll(iv.line, iv.pos, (String) iv.value, (int) i2v.value); :}
 	;
 
 Function ::=
@@ -89,9 +90,9 @@ Function ::=
 
 ParamList ::=
 		Type:t identifier:i
-		{: ParamList pl = new ParamList(); pl.add((Type) t, (Identifier) i); RESULT = pl; :}
+		{: ParamList pl = new ParamList(); pl.add((Type) t, (Symboll) i); RESULT = pl; :}
 	|	ParamList:pl COMMA Type:t identifier:i
-		{: ((ParamList) pl).add((Type) t, (Identifier) i); RESULT = pl; :}
+		{: ((ParamList) pl).add((Type) t, (Symboll) i); RESULT = pl; :}
 	;
 
 Type ::=
@@ -196,7 +197,7 @@ WhileStmt ::=
 
 SwitchStmt ::=
 		SWITCH LPAREN identifier:id RPAREN LBRACE CaseList:cl RBRACE
-        {: RESULT = new SwitchStmt((Identifier) id, (CaseList) cl); :}
+        {: RESULT = new SwitchStmt((Symboll) id, (CaseList) cl); :}
 	;
 
 CaseList ::=

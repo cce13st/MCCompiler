@@ -18,4 +18,8 @@ public class NodeList<T>{
 	public T get(int i) {
 		return list.get(i);
 	}
+	
+	public void replace(int i, T e) {
+		list.set(i, e);
+	}
 }

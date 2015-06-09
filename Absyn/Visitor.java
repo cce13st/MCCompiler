@@ -1,5 +1,7 @@
 package Absyn;
 
+import Symbol.Symboll;
+
 public class Visitor {
 	
 	public Program root;
@@ -32,12 +34,7 @@ public class Visitor {
 	}
 	
 	public void visit(Assign a) {
-		System.out.print(a.s + "<" + a.s.getHidden() + ">" + "{" + a.s.location + "}");
-		if (a.index != null) {
-			System.out.print("[");
-			visit(a.index);
-			System.out.print("]");
-		}
+		visit(a.s);
 		System.out.print(" = ");
 		visit(a.rhs);
 	}
@@ -71,7 +68,7 @@ public class Visitor {
 		}
 		else if (e instanceof IdExp) {
 			IdExp i = (IdExp) e;
-			System.out.print(i.s + "<" + i.s.getHidden() + ">{" + i.s.location + "}");
+			System.out.print(i.s + "<" + i.s.getHidden() + ">{" + i.s.offset + "+" + i.s.array +  "}");
 		}
 		else if (e instanceof IntExp) {
 			IntExp i = (IntExp) e;
@@ -172,7 +169,10 @@ public class Visitor {
 		else if (s instanceof SwitchStmt) {
 			SwitchStmt sw = (SwitchStmt) s;
 			System.out.print("switch (");
+			System.out.println(sw.id);
+
 			visit(sw.id);
+			
 			System.out.println(") {");
 			visit(sw.clist);
 			System.out.println("}");
@@ -205,7 +205,15 @@ public class Visitor {
 	/* Declaration */
 	public void visit(Decl d) {
 		visit(d.type);
-		visit(d.ilist);
+
+        SymbolList sl = d.slist;
+        for (int i=0; i<sl.length; i++) {
+            if(i > 0)
+                System.out.print(", ");
+
+            Symboll s = sl.get(i);
+            visit(s);
+        }
 	}
 	
 	public void visit(DeclList dl) {
@@ -217,22 +225,6 @@ public class Visitor {
 	
 	public void visit(Type t) {
 		System.out.print(t.ty.toString().toLowerCase() + " ");
-	}
-	
-	public void visit(IdentList il) {
-		for(int i=0; i<il.length; i++) {
-			if (i > 0)
-				System.out.print(", ");
-			visit(il.get(i));
-		}
-	}
-	
-	public void visit(Identifier i) {
-        System.out.print(i.s + "<" + i.s.getHidden() + ">" + "{" + i.s.location + "}");
-		if (i.index != null)
-			System.out.print("[" + i.index + "]");
-		else
-			System.out.print("");
 	}
 	
 	public void visit(Function f) {
@@ -249,7 +241,7 @@ public class Visitor {
 			if (i > 0)
 				System.out.print(", ");
 			visit(pl.getType(i));
-			visit(pl.getIdentifier(i));
+			visit(pl.getSymbol(i));
 		}
 	}
 	
@@ -257,5 +249,13 @@ public class Visitor {
 		for(int i=0; i<fl.length; i++) {
 			visit(fl.get(i));
 		}
+	}
+	
+	public void visit(Symboll s) {
+        System.out.print(s + "<" + s.getHidden() + ">" + "{" + s.offset + "+" + s.array + "}");
+		if (s.array > 0)
+			System.out.print("[" + s.array + "]");
+		else
+			System.out.print("");
 	}
 }

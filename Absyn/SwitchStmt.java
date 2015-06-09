@@ -1,10 +1,12 @@
 package Absyn;
 
+import Symbol.Symboll;
+
 public class SwitchStmt extends Stmt {
-	public Identifier id;
+	public Symboll id;
 	public CaseList clist;
 	
-	public SwitchStmt(Identifier i, CaseList cl) {
+	public SwitchStmt(Symboll i, CaseList cl) {
 		id = i;
 		clist = cl;
 	}

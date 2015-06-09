@@ -6,7 +6,7 @@ import Absyn.Type;
 
 public class StaticError {
 
-	public static void DuplicatedDeclaration(Symbol x, Scope target, int line, int pos) {
+	public static void DuplicatedDeclaration(Symboll x, Scope target, int line, int pos) {
 		System.out.println(Error() + LinePos(line, pos) + "Duplicated declaration :" + br(x) + "in function ["
 				+ target.loc + "]");
 	}
@@ -15,19 +15,19 @@ public class StaticError {
 		System.out.println(Error() + LinePos(line, pos) + "Cannot find a function [" + name + "]");
 	}
 
-	public static void VarNotDeclared(Symbol x, Scope target, int line, int pos) {
+	public static void VarNotDeclared(Symboll x, Scope target, int line, int pos) {
 		System.out.println(Error() + LinePos(line, pos) + "variable" + br(x) + "does not declared in this scope");
 	}
 
-	public static void VarNotArray(Symbol x, int line, int pos) {
+	public static void VarNotArray(Symboll x, int line, int pos) {
 		System.out.println(Error() + LinePos(line, pos) + "This variable" + br(x) + "is not an array type");
 	}
 
-	public static void ArrayWithoutIndex(Symbol x, int line, int pos) {
+	public static void ArrayWithoutIndex(Symboll x, int line, int pos) {
 		System.out.println(Error() + LinePos(line, pos) + "This variable" + br(x) + "need an array index");
 	}
 
-	public static void TypeMismatched(Symbol x, Type.type type, int line, int pos) {
+	public static void TypeMismatched(Symboll x, Type.type type, int line, int pos) {
 		System.out.println(Error() + LinePos(line, pos) + "Type mismatched" + br(x) + ":" + x.type + " with type "
 				+ type);
 	}
@@ -69,11 +69,11 @@ public class StaticError {
 		System.out.println(Warning() + LinePos(line, pos) + "Function has no return value at function " + funcName);
 	}
 	
-	public static void WarnConversion(Symbol x, int line, int pos) {
+	public static void WarnConversion(Symboll x, int line, int pos) {
 		System.out.println(Warning() + LinePos(line, pos) + "Float value is assigned into integer variable" + br(x));
 	}
 	
-	private static String br(Symbol x) {
+	private static String br(Symboll x) {
 		return " [" + x + "] ";
 	}
 	

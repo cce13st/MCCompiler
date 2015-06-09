@@ -1,16 +1,16 @@
 package Absyn;
 
-import Symbol.Symbol;
+import Symbol.Symboll;
 
 public class Assign extends Absyn {
-	public Symbol s;
+	public Symboll s;
 	public Exp index;
 	public Exp rhs;
 	
 	public Assign(int l, int p, String i, Exp e) {
 		line = l;
 		pos = p;
-		s = Symbol.newSymbol(i);
+		s = Symboll.newSymbol(i);
 		index = null;
 		rhs = e;
 	}
@@ -18,7 +18,7 @@ public class Assign extends Absyn {
 	public Assign(int l, int p, String i, Exp e1, Exp e2) {
 		line = l;
 		pos = p;
-		s = Symbol.newSymbol(i);
+		s = Symboll.newSymbol(i);
 		index = e1;
 		rhs = e2;
 	}

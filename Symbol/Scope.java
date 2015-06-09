@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 
 public class Scope {
-	public LinkedHashMap<String, Symbol> map;
+	public LinkedHashMap<String, Symboll> map;
 	public Scope outer;
 	public String loc;
 	public boolean isFunc;
@@ -16,7 +16,7 @@ public class Scope {
 	public int comnum = 1;
 
 	public Scope(Scope out, String l, boolean isF) {
-		map = new LinkedHashMap<String, Symbol>();
+		map = new LinkedHashMap<String, Symboll>();
 		descend = new ArrayList<Scope>();
 		outer = out;
 		if (out != null)
@@ -55,7 +55,7 @@ public class Scope {
 		return s;
 	}
 
-	public void addBind(String key, Symbol s) {
+	public void addBind(String key, Symboll s) {
 		if (map.get(key) != null) {
 			s.setDuplicated(true);
 		}
@@ -63,10 +63,10 @@ public class Scope {
 			map.put(key, s);
 	}
 	
-	public Symbol lookup(String key) {
+	public Symboll lookup(String key) {
 		Scope current = this;
 		while (current != null) {
-			Symbol s = current.map.get(key);
+			Symboll s = current.map.get(key);
 			if (s != null) {
 				return s;
 			}

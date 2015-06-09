@@ -41,7 +41,7 @@ public class Table {
 		int cnt = 1;
 		
 		for (String key : s.map.keySet()) {
-			Symbol sym = s.map.get(key);
+			Symboll sym = s.map.get(key);
 			String arrayStr;
 			
 			if (sym.array == 0)

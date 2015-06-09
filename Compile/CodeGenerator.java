@@ -1,9 +1,10 @@
 package Compile;
 
-import Absyn.*;
-import Symbol.Table;
-
 import java.util.Iterator;
+
+import Absyn.*;
+import Symbol.Symboll;
+import Symbol.Table;
 
 /**
  * Created by yeonni on 15. 6. 7..
@@ -162,22 +163,16 @@ public class CodeGenerator {
     }
 
     private String emit(Decl ast) {
-        return emit(ast.ilist);
-    }
-
-    private String emit(IdentList ast) {
-        String instr = "";
-        Iterator<Identifier> iter = ast.list.iterator();
-        Identifier item;
-        while (iter.hasNext()) {
-            item = iter.next();
-            instr += emit(item);
-        }
+    	String instr = "";
+    	
+    	Iterator<Symboll> iter = ast.slist.list.iterator();
+    	Symboll item;
+    	while (iter.hasNext()) {
+    		item = iter.next();
+    		instr += emit(item);
+    	}
+    	
         return instr;
-    }
-
-    private String emit(Identifier ast) {
-        return "";//TODO
     }
 
     private String emit(Function ast) {
@@ -195,8 +190,9 @@ public class CodeGenerator {
 
     private String emit(ParamList ast) {
         String instr = "";
-        Iterator<Identifier> iter = ast.ilist.iterator();
-        Identifier item;
+        Iterator<Symboll> iter = ast.slist.iterator();
+        
+        Symboll item;
         while (iter.hasNext()) {
             item = iter.next();
             instr += emit(item);
@@ -347,7 +343,8 @@ public class CodeGenerator {
 	}
 
     private String emit(ArrayExp ast) {
-        int Reg 
+    	
+    	return "";
     }
 
     private String emit(BinOpExp ast) {
@@ -356,22 +353,23 @@ public class CodeGenerator {
         int LReg = ast.left.reg;
         int RReg = ast.right.reg;
         int newReg = newRegister();
+        int comp = 0;
        
         switch(ast.op) {
-            case Op.PLUS:
+            case PLUS:
                 instr += makeCode(ADD, RegRef(LReg), RegRef(RReg), Reg(newReg));
                 break;
-            case Op.MINUS:
+            case MINUS:
                 instr += makeCode(SUB, RegRef(LReg), RegRef(RReg), Reg(newReg));
                 break;
-            case Op.MULT:
+            case MULT:
                 instr += makeCode(MUL, RegRef(LReg), RegRef(RReg), Reg(newReg));
                 break;
-            case Op.DIV:
+            case DIV:
                 instr += makeCode(DIV, RegRef(LReg), RegRef(RReg), Reg(newReg));
                 break;
-            case Op.LT:
-                int comp = newRegister();
+            case LT:
+                comp = newRegister();
                 instr += makeCode(SUB, RegRef(LReg), RegRef(RReg), Reg(comp));
                 instr += makeCode(JMPN, RegRef(comp), ExpLabel);
                 instr += makeCode(MOVE, Value(0), Reg(newReg)); 
@@ -380,8 +378,8 @@ public class CodeGenerator {
                 instr += makeCode(MOVE, Value(1), Reg(newReg));
                 instr += makeCode(LAB, ExpLabel+"EXIT");
                 break;
-            case Op.GT:
-                int comp = newRegister();
+            case GT:
+                comp = newRegister();
                 instr += makeCode(SUB, RegRef(RReg), RegRef(LReg), Reg(comp));
                 instr += makeCode(JMPN, RegRef(comp), ExpLabel);
                 instr += makeCode(MOVE, Value(0), Reg(newReg)); 
@@ -390,8 +388,8 @@ public class CodeGenerator {
                 instr += makeCode(MOVE, Value(1), Reg(newReg));
                 instr += makeCode(LAB, ExpLabel+"EXIT");
                 break;
-            case Op.LTEQ:
-                int comp = newRegister();
+            case LTEQ:
+                comp = newRegister();
                 instr += makeCode(SUB, RegRef(RReg), RegRef(LReg), Reg(comp));
                 instr += makeCode(JMPN, RegRef(comp), ExpLabel);
                 instr += makeCode(MOVE, Value(1), Reg(newReg)); 
@@ -400,19 +398,9 @@ public class CodeGenerator {
                 instr += makeCode(MOVE, Value(0), Reg(newReg));
                 instr += makeCode(LAB, ExpLabel+"EXIT");
                 break;
-            case Op.NOTEQ:
-                int comp = newRegister();
+            case NOTEQ:
+                comp = newRegister();
                 instr += makeCode(SUB, RegRef(LReg), RegRef(RReg), Reg(comp));
-                instr += makeCode(JMPN, RegRef(comp), ExpLabel);
-                instr += makeCode(MOVE, Value(1), Reg(newReg)); 
-                instr += makeCode(JMP, ExpLabel+"EXIT");
-                instr += makeCode(LAB, ExpLabel);
-                instr += makeCode(MOVE, Value(0), Reg(newReg));
-                instr += makeCode(LAB, ExpLabel+"EXIT");
-                break;
-            case Op.NOTEQ:
-                int comp = newRegister();
-                instr += makeCode(SUB, RegRef(LReg), RegRef(LReg), Reg(comp));
                 instr += makeCode(JMPZ, RegRef(comp), ExpLabel);
                 instr += makeCode(MOVE, Value(1), Reg(newReg));
                 instr += makeCode(JMP, ExpLabel+"EXIT");
@@ -420,14 +408,14 @@ public class CodeGenerator {
                 instr += makeCode(MOVE, Value(0), Reg(newReg));
                 instr += makeCode(LAB, ExpLabel+"EXIT");
                 break;
-            case Op.EQEQ:
-                int comp = newRegister();
-                instr += makeCode(SUB, RegRef(LReg), RegRef(LReg), Reg(comp));
+            case EQEQ:
+                comp = newRegister();
+                instr += makeCode(SUB, RegRef(LReg), RegRef(RReg), Reg(comp));
                 instr += makeCode(JMPZ, RegRef(comp), ExpLabel);
-                instr += makeCode(MOVE, Value(1), Reg(newReg));
+                instr += makeCode(MOVE, Value(0), Reg(newReg));
                 instr += makeCode(JMP, ExpLabel+"EXIT");
                 instr += makeCode(LAB, ExpLabel);
-                instr += makeCode(MOVE, Value(0), Reg(newReg));
+                instr += makeCode(MOVE, Value(1), Reg(newReg));
                 instr += makeCode(LAB, ExpLabel+"EXIT");
                 break;
         }
@@ -437,7 +425,7 @@ public class CodeGenerator {
     }
 
     private String emit(CallExp ast) {
-
+    	return "";
     }
 
     private String emit(FloatExp ast) {
@@ -451,7 +439,7 @@ public class CodeGenerator {
     }
 
     private String emit(IdExp ast) {
-        
+        return "";
     }
 
     private String emit(IntExp ast) {
@@ -465,10 +453,11 @@ public class CodeGenerator {
     }
 
     private String emit(UnOpExp ast) {
+    	String instr;
         int reg = ast.exp.reg;
         int newReg = newRegister();
 
-        instr = makeCode(MUL, Value(-1), RegRef(reg), Reg(newReg);
+        instr = makeCode(MUL, Value(-1), RegRef(reg), Reg(newReg));
 
         ast.reg = newReg;
         return instr;
@@ -476,7 +465,7 @@ public class CodeGenerator {
 
     private String emit(F2IExp ast) {
         String instr;
-        int reg = ast.exp.reg;
+        int reg = ast.child.reg;
         int newReg = newRegister();
 
         instr = makeCode(F2I, Reg(reg), Reg(newReg));
@@ -487,7 +476,7 @@ public class CodeGenerator {
 
     private String emit(I2FExp ast) {
         String instr;
-        int reg = ast.exp.reg;
+        int reg = ast.child.reg;
         int newReg = newRegister();
 
         instr = makeCode(I2F, Reg(reg), Reg(newReg));
@@ -495,5 +484,10 @@ public class CodeGenerator {
         ast.reg = newReg;
         return instr;
     }
-
+    
+    private String emit(Symboll s) {
+    	String instr = "";
+    	
+    	return instr;
+    }
 }

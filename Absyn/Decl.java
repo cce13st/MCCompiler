@@ -2,11 +2,11 @@ package Absyn;
 
 public class Decl extends Absyn {
 	public Type type;
-	public IdentList ilist;
+    public SymbolList slist;
 	
-	public Decl(int p, Type t, IdentList il) {
+	public Decl(int p, Type t, SymbolList sl) {
 		pos = p;
 		type = t;
-		ilist = il;
+        slist = sl;
 	}
 }

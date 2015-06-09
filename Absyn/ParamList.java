@@ -2,26 +2,32 @@ package Absyn;
 
 import java.util.ArrayList;
 
+import Symbol.Symboll;
+
 public class ParamList{
 	public int length;
 	public ArrayList<Type> tlist = new ArrayList<Type>();
-	public ArrayList<Identifier> ilist = new ArrayList<Identifier>();
+	public ArrayList<Symboll> slist = new ArrayList<Symboll>();
 
 	public ParamList() {
 		length = 0;
 	}
 	
-	public void add(Type t, Identifier i) {
+	public void add(Type t, Symboll s) {
 		length++;
 		tlist.add(t);
-		ilist.add(i);
+		slist.add(s);
 	}
 	
 	public Type getType(int i) {
 		return tlist.get(i);
 	}
 	
-	public Identifier getIdentifier(int i) {
-		return ilist.get(i);
+	public Symboll getSymbol(int i) {
+		return slist.get(i);
+	}
+	
+	public void replaceSymbol(int i, Symboll s) {
+		slist.set(i, s);
 	}
 }

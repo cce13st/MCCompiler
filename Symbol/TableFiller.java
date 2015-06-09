@@ -33,15 +33,15 @@ public class TableFiller {
 
 	public void visit(Decl d) {
 		Type type = d.type;
-		IdentList il = d.ilist;
+		SymbolList sl = d.slist;
 
-		for (int i = 0; i < il.length; i++) {
-			Identifier id = il.get(i);
-			if (id.index == null)
-				id.s = new Symbol(type.ty, id.s.name, 0, true, 0, id.line, id.pos);
-			else
-				id.s = new Symbol(type.ty, id.s.name, id.index, true, 0, id.line, id.pos);
-			current.addBind(id.s.name, id.s);
+		for (int i = 0; i < sl.length; i++) {
+			Symboll id = sl.get(i);
+			
+			id = new Symboll(type.ty, id.name, id.array, true, i, id.line, id.pos);
+			sl.replace(i, id);
+			
+			current.addBind(id.name, id);
 		}
 	}
 
@@ -52,7 +52,7 @@ public class TableFiller {
 	}
 
 	public void visit(Function f) {
-        Symbol.clearLoc();
+        Symboll.clearLoc();
 		if (table.funcMap.get(f.id) == null)
 			table.addFunction(f);
 		else {
@@ -70,15 +70,13 @@ public class TableFiller {
 
 	public void visit(ParamList pl) {
 		for (int i = 0; i < pl.length; i++) {
-			Identifier id = pl.getIdentifier(i);
+			Symboll id = pl.getSymbol(i);
 			Type type = pl.getType(i);
+			
+			id = new Symboll(type.ty, id.name, id.array, false, i, id.line, id.pos);
+			pl.replaceSymbol(i, id);
 
-			if (id.index == null)
-				id.s = new Symbol(type.ty, id.s.name, 0, false, i, id.line, id.pos);
-			else
-				id.s = new Symbol(type.ty, id.s.name, id.index, false, i, id.line, id.pos);
-
-			current.addBind(id.s.name, id.s);
+			current.addBind(id.name, id);
 		}
 	}
 
@@ -152,7 +150,7 @@ public class TableFiller {
 		}
 		else if (s instanceof SwitchStmt) {
 			SwitchStmt sw = (SwitchStmt) s;
-			sw.id.s = checkDeclared(current, sw.id.s);
+			sw.id = checkDeclared(current, sw.id);
 			visit(sw.clist);
 		}
 		else if (s instanceof CallStmt) {
@@ -209,8 +207,8 @@ public class TableFiller {
 		visit(a.rhs);
 	}
 	
-	private Symbol checkDeclared(Scope current, Symbol target) {
-		Symbol s = current.lookup(target.name);
+	private Symboll checkDeclared(Scope current, Symboll target) {
+		Symboll s = current.lookup(target.name);
 		if (s == null) {
 			target.setDeclared(false);
 			s = target;

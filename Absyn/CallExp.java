@@ -1,6 +1,6 @@
 package Absyn;
 
-import Symbol.Symbol;
+import Symbol.Symboll;
 
 public class CallExp extends Exp {
 	public String funcName;

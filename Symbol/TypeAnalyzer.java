@@ -2,38 +2,7 @@ package Symbol;
 
 import java.util.ArrayList;
 
-import Absyn.ArgList;
-import Absyn.ArrayExp;
-import Absyn.Assign;
-import Absyn.AssignStmt;
-import Absyn.BinOpExp;
-import Absyn.CallExp;
-import Absyn.CallStmt;
-import Absyn.Case;
-import Absyn.CaseList;
-import Absyn.CompoundStmt;
-import Absyn.Decl;
-import Absyn.DeclList;
-import Absyn.Exp;
-import Absyn.FloatExp;
-import Absyn.ForStmt;
-import Absyn.FuncList;
-import Absyn.Function;
-import Absyn.I2FExp;
-import Absyn.IdExp;
-import Absyn.IdentList;
-import Absyn.Identifier;
-import Absyn.IfStmt;
-import Absyn.IntExp;
-import Absyn.ParamList;
-import Absyn.Program;
-import Absyn.RetStmt;
-import Absyn.Stmt;
-import Absyn.StmtList;
-import Absyn.SwitchStmt;
-import Absyn.Type;
-import Absyn.UnOpExp;
-import Absyn.WhileStmt;
+import Absyn.*;
 
 class TypeAnalyzer {
 	public Table table;
@@ -92,11 +61,10 @@ class TypeAnalyzer {
 
 	public void visit(Decl d) {
 		Type type = d.type;
-		IdentList il = d.ilist;
+		SymbolList sl = d.slist;
 
-		for (int i = 0; i < il.length; i++) {
-			Identifier id = il.get(i);
-			Symbol s = id.s;
+		for (int i = 0; i < sl.length; i++) {
+			Symboll s = sl.get(i);
 
 			if (s.isDuplicated()) {
 				StaticError.DuplicatedDeclaration(s, current, s.line, s.pos);
@@ -193,8 +161,8 @@ class TypeAnalyzer {
 		}
 		else if (s instanceof SwitchStmt) {
 			SwitchStmt sw = (SwitchStmt) s;
-			if (!sw.id.s.isDeclared()) {
-				StaticError.VarNotDeclared(sw.id.s, current, sw.id.line, sw.id.pos);
+			if (!sw.id.isDeclared()) {
+				StaticError.VarNotDeclared(sw.id, current, sw.id.line, sw.id.pos);
 				resultValidity = false;
 			}
 			visit(sw.clist);
@@ -348,7 +316,7 @@ class TypeAnalyzer {
 
 					// Check Array Pointer passing
 					if (arg instanceof IdExp) {
-						Symbol s = ((IdExp) arg).s;
+						Symboll s = ((IdExp) arg).s;
 
 						if (!s.isDeclared()) {
 							StaticError.VarNotDeclared(s, current, s.line, s.pos);
@@ -358,7 +326,7 @@ class TypeAnalyzer {
 						}
 						
 						boolean paramArray;
-						if (pl.ilist.get(i).index == null)
+						if (pl.slist.get(i).array == 0)
 							paramArray = false;
 						else
 							paramArray = true;
@@ -392,7 +360,7 @@ class TypeAnalyzer {
 						}
 
 						boolean paramArray;
-						if (pl.ilist.get(i).index == null)
+						if (pl.slist.get(i).array > 0)
 							paramArray = false;
 						else
 							paramArray = true;
@@ -431,7 +399,6 @@ class TypeAnalyzer {
 		} 
 		else if (e instanceof IdExp) {
 			IdExp i = (IdExp) e;
-            System.out.println("====== i.s : " + i.s.name + ", isGlobal : " + i.s.isGlobal(table));
 						
 			if (!i.s.isDeclared()) {
 				StaticError.VarNotDeclared(i.s, current, i.line, i.pos);
