@@ -11,25 +11,21 @@ import Absyn.Visitor;
 import Compile.CodeGenerator;
 import Symbol.Table;
 
-public class Main {
+public class Frontend {
 
 	static private final String treeOut = "tree.txt";
 	static private final String tableOut = "table.txt";
+	public Program program;
+	public Table table;
 
-	public static void main(String argv[]) throws Exception {
-		String filename = null;
+	public void parse(String filename) throws Exception {
 		PrintStream outstream = null;
         outstream = new PrintStream(new FileOutputStream(treeOut));
-        System.setOut(outstream);  
-
-		if (argv.length > 0)
-			filename = argv[0];
-		else
-			filename = "tests/input.txt";
+        System.setOut(outstream);
 
 		BufferedReader in = new BufferedReader(new FileReader(filename));
 		Lexer l = new Lexer(in);
-		Parser p = new Parser(l);
+		Frontend p = new Frontend(l);
 
 		Program a = (Program) p.parse().value;
 		Visitor v = new Visitor(a);
@@ -45,7 +41,7 @@ public class Main {
 		t.typeAnalysis(a);
 		
 		System.setOut(new PrintStream(new FileOutputStream(FileDescriptor.out)));
-		CodeGenerator gen = new CodeGenerator(a, t);
-		gen.printInstr();
+		this.program = a;
+		this.table = t;
 	}
 }
