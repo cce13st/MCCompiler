@@ -2,7 +2,7 @@ package Symbol;
 
 import Absyn.Type;
 
-public class Symbol {
+public class Symboll {
     /* Unique id generator */
 	private static int hiddenCnt = 1;
 
@@ -22,18 +22,26 @@ public class Symbol {
 	private boolean duplicated = false;     /* Indicates whether this symbol has duplicated declaration */
 	
 	public int hiddenId = -1;               /* Unique id for each variable */
-    public int location = -1;               /* Relative address from SP */
+    public int offset = -1;               /* Relative address from SP */
 
-	public static Symbol newSymbol(String n) {
-		return new Symbol(n);
+	public static Symboll newSymbol(String n) {
+		return new Symboll(n);
 	}
 	
-	public Symbol(String n) {
+	public Symboll(String n) {
 		name = n;
 		init = false;
 	}
 
-	public Symbol(Type.type t, String n, int size, boolean v, int paramIdx, int l, int p) {
+    public Symboll(int l, int p, String n, int index) {
+        this.line = l;
+        this.pos = p;
+        name = n;
+        init = false;
+        array = index;
+    }
+
+	public Symboll(Type.type t, String n, int size, boolean v, int paramIdx, int l, int p) {
 		line = l;
 		pos = p;
 		
@@ -49,14 +57,14 @@ public class Symbol {
         
         if (var) {
             /* If variable, just give a new location */
-            location = locpoint;                    
+            offset = locpoint;                    
             if (array == 0)
                 locpoint++;
             else
                 locpoint += array;        
         }
         else {
-            location = -paramIdx-1;
+            offset = -paramIdx-1;
         }
 	}
 	
@@ -85,7 +93,7 @@ public class Symbol {
 	}
 
     public boolean isGlobal(Table table) {
-        Symbol s = table.global.lookup(this.name);
+        Symboll s = table.global.lookup(this.name);
 
         if (s == null)
             return false;
@@ -94,10 +102,14 @@ public class Symbol {
 	}
 
     public String getHidden() {
-        if (hiddenId == -1)
+        if (this.hiddenId == -1)
             return "#err";
         else
-            return "@" + hiddenId;
+            return "@" + this.hiddenId;
+    }
+
+    public int getOffset() {
+        return this.offset;
     }
 
     public static void clearLoc() {
