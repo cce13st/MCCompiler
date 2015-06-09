@@ -6,6 +6,8 @@ Parse/Main.class: Absyn/*.java Parse/*.java Parse/Parser.java Parse/sym.java Par
 Absyn/Absyn.class : Absyn/*.java
 		javac ${JFLAGS} Absyn/*.java
 
+Compile/Compile.class : Compile/*.java
+		javac ${JFLAGS} Compile/*.java
 
 Parse/Parser.java: Parse/rules.cup
 		java -jar libs/java-cup-11a.jar -parser Parser Parse/rules.cup;
@@ -22,4 +24,4 @@ Symbol/Symbol.class : Symbol/*.java
 		javac ${JFLAGS} Symbol/*.java
 
 clean :
-		rm -rf Absyn/*.class Symbol/*.class ErrorMsg/*.class Parse/*.class; rm Parse/parser.java; rm Parse/sym.java; rm Parse/Lexer.java
+		rm -rf Absyn/*.class Compile/*.java Symbol/*.class ErrorMsg/*.class Parse/*.class; rm Parse/parser.java; rm Parse/sym.java; rm Parse/Lexer.java
