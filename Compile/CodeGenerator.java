@@ -1,6 +1,7 @@
 package Compile;
 
 import Absyn.*;
+import Symbol.Table;
 
 import java.util.Iterator;
 
@@ -9,7 +10,9 @@ import java.util.Iterator;
  */
 public class CodeGenerator {
 	public Program root;
+    public Table table;
 	private int regNum = 1;
+    private int branchCount = 1;
     private int expCount = 1;
 
     private final String SP = "SP";
@@ -36,8 +39,9 @@ public class CodeGenerator {
     private final String WRITE = "WRITE";
 
 
-    public CodeGenerator(Program p) {
+    public CodeGenerator(Program p, Table t) {
 		this.root = p;
+        this.table = t;
 	}
 			
 	
@@ -177,14 +181,15 @@ public class CodeGenerator {
     }
 
     private String emit(Function ast) {
-        String instr = makeCode(LAB, ast.id);
+        String fname = "FUNCTION" + ast.id;
+        String instr = makeCode(LAB, fname);
 
         if (ast.paramList != null) {
             instr += emit(ast.paramList);
         }
         instr += emit(ast.compoundStmt);
 
-        instr += makeCode(LAB, ast.id + "EXIT");
+        instr += makeCode(LAB, fname + "EXIT");
         return instr;
     }
 
@@ -234,15 +239,25 @@ public class CodeGenerator {
     }
 
     private String emit(AssignStmt ast) {
+        return emit(ast.assign);
+    }
 
+    private String emit(Assign ast) {
+        //TODO
+        return "";
     }
 
     private String emit(CallStmt ast) {
-
+        return emit((CallExp) ast.exp);
     }
 
     private String emit(CompoundStmt ast) {
-
+        String instr = "";
+        if (ast.dlist != null) {
+            instr += emit(ast.dlist);
+        }
+        instr += emit(ast.slist);
+        return instr;
     }
 
     private String emit(EmptyStmt ast) {
@@ -250,23 +265,54 @@ public class CodeGenerator {
     }
 
     private String emit(ForStmt ast) {
+        String loopInit = "LOOP" + Value(this.branchCount++);
+        String loopExit = loopInit + "EXIT";
+        String instr = emit(ast.init);
+        instr += makeCode(LAB, loopInit);
+        instr += emit(ast.cond);
+        instr += makeCode(JMPZ, Reg(ast.cond.reg), loopExit);
+        instr += emit(ast.body);
+        instr += emit(ast.post);
+        instr += makeCode(JMP, loopInit);
 
+        instr += makeCode(LAB, loopExit);
+        return instr;
     }
 
     private String emit(IfStmt ast) {
-
+        String branchName = "BRANCH" + Value(this.branchCount++);
+        String instr = emit(ast.cond);
+        instr += makeCode(JMPZ, Reg(ast.cond.reg), "F" + branchName);
+        instr += emit(ast.thenClause);
+        instr += makeCode(JMP, branchName + "EXIT");
+        instr += makeCode(LAB, "F" + branchName);
+        if (ast.elseClause != null) {
+            instr += emit(ast.elseClause);
+        }
+        instr += makeCode(LAB, branchName + "EXIT");
+        return instr;
     }
 
     private String emit(RetStmt ast) {
-
+        //TODO
+        return "";
     }
 
     private String emit(SwitchStmt ast) {
-
+        //TODO
+        return "";
     }
 
     private String emit(WhileStmt ast) {
-
+        String loopInit = "LOOP" + Value(this.branchCount++);
+        String loopExit = loopInit + "EXIT";
+        String instr = makeCode(LAB, loopInit);
+        instr += emit(ast.cond);
+        instr += makeCode(JMPZ, Reg(ast.cond.reg), loopExit);
+        instr += emit(ast.body);
+        instr += makeCode(JMP, loopInit);
+        instr += makeCode(LAB, loopExit);
+        return instr;
     }
 
 	private String emit(Exp ast) {
