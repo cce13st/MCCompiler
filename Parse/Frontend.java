@@ -18,14 +18,14 @@ public class Frontend {
 	public Program program;
 	public Table table;
 
-	public void parse(String filename) throws Exception {
+	public void build(String filename) throws Exception {
 		PrintStream outstream = null;
         outstream = new PrintStream(new FileOutputStream(treeOut));
         System.setOut(outstream);
 
 		BufferedReader in = new BufferedReader(new FileReader(filename));
 		Lexer l = new Lexer(in);
-		Frontend p = new Frontend(l);
+		Parser p = new Parser(l);
 
 		Program a = (Program) p.parse().value;
 		Visitor v = new Visitor(a);

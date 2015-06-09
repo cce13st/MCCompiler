@@ -1,13 +1,16 @@
 JFLAGS=-g
 
-Parse/Main.class: Absyn/*.java Compile/*.java Parse/*.java Parse/Parser.java Parse/sym.java Parse/ Parse/Lexer.java Parse/LocValue.java
-		javac -cp .:libs/java-cup-11a.jar ${JFLAGS} Parse/*.java
+Compile/Main.class: Absyn/*.java Compile/*.java Parse/*.java Parse/Parser.java Parse/sym.java Parse/ Parse/Lexer.java Parse/LocValue.java
+		javac -cp .:libs/java-cup-11a.jar ${JFLAGS} Compile/*.java
 
 Absyn/Absyn.class : Absyn/*.java
 		javac ${JFLAGS} Absyn/*.java
 
 Compile/Compile.class : Compile/*.java
 		javac ${JFLAGS} Compile/*.java
+
+Parse/Frontend.class : Parse/*.java
+		javac ${JFLAGS} Parse/*.java
 
 Parse/Parser.java: Parse/rules.cup
 		java -jar libs/java-cup-11a.jar -parser Parser Parse/rules.cup;

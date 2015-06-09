@@ -20,7 +20,7 @@ public class Main {
 
         Frontend parser = new Frontend();
         try {
-            parser.parse(filename);
+            parser.build(filename);
         } catch (Exception e) {
             e.printStackTrace();
         }
