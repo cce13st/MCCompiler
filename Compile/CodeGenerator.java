@@ -10,6 +10,7 @@ import java.util.Iterator;
 public class CodeGenerator {
 	public Program root;
 	private int regNum = 1;
+    private int expCount = 1;
 
     private final String SP = "SP";
     private final String FP = "FP";
@@ -300,15 +301,93 @@ public class CodeGenerator {
 	}
 
     private String emit(ArrayExp ast) {
-
+        int Reg 
     }
 
     private String emit(BinOpExp ast) {
+        String ExpLabel = "EXP" + Value(this.expCount++);
+        String instr = "";
         int LReg = ast.left.reg;
         int RReg = ast.right.reg;
         int newReg = newRegister();
-        makeCode(op, RegRef(LReg), RegRef(RReg), Reg(newReg)); 
+       
+        switch(ast.op) {
+            case Op.PLUS:
+                instr += makeCode(ADD, RegRef(LReg), RegRef(RReg), Reg(newReg));
+                break;
+            case Op.MINUS:
+                instr += makeCode(SUB, RegRef(LReg), RegRef(RReg), Reg(newReg));
+                break;
+            case Op.MULT:
+                instr += makeCode(MUL, RegRef(LReg), RegRef(RReg), Reg(newReg));
+                break;
+            case Op.DIV:
+                instr += makeCode(DIV, RegRef(LReg), RegRef(RReg), Reg(newReg));
+                break;
+            case Op.LT:
+                int comp = newRegister();
+                instr += makeCode(SUB, RegRef(LReg), RegRef(RReg), Reg(comp));
+                instr += makeCode(JMPN, RegRef(comp), ExpLabel);
+                instr += makeCode(MOVE, Value(0), Reg(newReg)); 
+                instr += makeCode(JMP, ExpLabel+"EXIT");
+                instr += makeCode(LAB, ExpLabel);
+                instr += makeCode(MOVE, Value(1), Reg(newReg));
+                instr += makeCode(LAB, ExpLabel+"EXIT");
+                break;
+            case Op.GT:
+                int comp = newRegister();
+                instr += makeCode(SUB, RegRef(RReg), RegRef(LReg), Reg(comp));
+                instr += makeCode(JMPN, RegRef(comp), ExpLabel);
+                instr += makeCode(MOVE, Value(0), Reg(newReg)); 
+                instr += makeCode(JMP, ExpLabel+"EXIT");
+                instr += makeCode(LAB, ExpLabel);
+                instr += makeCode(MOVE, Value(1), Reg(newReg));
+                instr += makeCode(LAB, ExpLabel+"EXIT");
+                break;
+            case Op.LTEQ:
+                int comp = newRegister();
+                instr += makeCode(SUB, RegRef(RReg), RegRef(LReg), Reg(comp));
+                instr += makeCode(JMPN, RegRef(comp), ExpLabel);
+                instr += makeCode(MOVE, Value(1), Reg(newReg)); 
+                instr += makeCode(JMP, ExpLabel+"EXIT");
+                instr += makeCode(LAB, ExpLabel);
+                instr += makeCode(MOVE, Value(0), Reg(newReg));
+                instr += makeCode(LAB, ExpLabel+"EXIT");
+                break;
+            case Op.NOTEQ:
+                int comp = newRegister();
+                instr += makeCode(SUB, RegRef(LReg), RegRef(RReg), Reg(comp));
+                instr += makeCode(JMPN, RegRef(comp), ExpLabel);
+                instr += makeCode(MOVE, Value(1), Reg(newReg)); 
+                instr += makeCode(JMP, ExpLabel+"EXIT");
+                instr += makeCode(LAB, ExpLabel);
+                instr += makeCode(MOVE, Value(0), Reg(newReg));
+                instr += makeCode(LAB, ExpLabel+"EXIT");
+                break;
+            case Op.NOTEQ:
+                int comp = newRegister();
+                instr += makeCode(SUB, RegRef(LReg), RegRef(LReg), Reg(comp));
+                instr += makeCode(JMPZ, RegRef(comp), ExpLabel);
+                instr += makeCode(MOVE, Value(1), Reg(newReg));
+                instr += makeCode(JMP, ExpLabel+"EXIT");
+                instr += makeCode(LAB, ExpLabel);
+                instr += makeCode(MOVE, Value(0), Reg(newReg));
+                instr += makeCode(LAB, ExpLabel+"EXIT");
+                break;
+            case Op.EQEQ:
+                int comp = newRegister();
+                instr += makeCode(SUB, RegRef(LReg), RegRef(LReg), Reg(comp));
+                instr += makeCode(JMPZ, RegRef(comp), ExpLabel);
+                instr += makeCode(MOVE, Value(1), Reg(newReg));
+                instr += makeCode(JMP, ExpLabel+"EXIT");
+                instr += makeCode(LAB, ExpLabel);
+                instr += makeCode(MOVE, Value(0), Reg(newReg));
+                instr += makeCode(LAB, ExpLabel+"EXIT");
+                break;
+        }
+
         ast.reg = newReg;
+        return instr;
     }
 
     private String emit(CallExp ast) {
@@ -316,37 +395,59 @@ public class CodeGenerator {
     }
 
     private String emit(FloatExp ast) {
+        String instr; 
         int newReg = newRegister();
-        makeCode(MOVE, Val(ast.value), Reg(newReg));
+
+        instr = makeCode(MOVE, Value(ast.value), Reg(newReg));    
+
+        ast.reg = newReg;
+        return instr;
     }
 
     private String emit(IdExp ast) {
-
+        
     }
 
     private String emit(IntExp ast) {
+        String instr;
         int newReg = newRegister();
-        makeCode(MOVE, Val(ast.value), Reg(newReg));
+
+        instr = makeCode(MOVE, Value(ast.value), Reg(newReg));
+
+        ast.reg = newReg;
+        return instr;
     }
 
     private String emit(UnOpExp ast) {
         int reg = ast.exp.reg;
         int newReg = newRegister();
 
-        makeCode(MUL, Val(-1), RegRef(reg), Reg(newReg);
+        instr = makeCode(MUL, Value(-1), RegRef(reg), Reg(newReg);
 
         ast.reg = newReg;
+        return instr;
     }
 
     private String emit(F2IExp ast) {
+        String instr;
         int reg = ast.exp.reg;
         int newReg = newRegister();
 
-        makeCode(F2I, Reg(reg), Reg(newReg));
+        instr = makeCode(F2I, Reg(reg), Reg(newReg));
+
+        ast.reg = newReg;
+        return instr;
     }
 
     private String emit(I2FExp ast) {
+        String instr;
+        int reg = ast.exp.reg;
+        int newReg = newRegister();
 
+        instr = makeCode(I2F, Reg(reg), Reg(newReg));
+
+        ast.reg = newReg;
+        return instr;
     }
 
 }
