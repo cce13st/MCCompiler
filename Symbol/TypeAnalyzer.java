@@ -226,8 +226,9 @@ class TypeAnalyzer {
 			if (ei == null || !ei.isInteger()) {
 				System.err.println("this is not integer index");
 				return null;
-			}
+			}			
 
+			e.type = a.s.type;
 			return new ExpInfo(a.s.type);
 		} 
 		else if (e instanceof BinOpExp) {
@@ -264,6 +265,7 @@ class TypeAnalyzer {
 					conv = Type.type.FLOAT;
 				}
 				
+				b.type = conv;
 				ExpInfo result = new ExpInfo(conv);
 				result.complete = true;
 				return result;
@@ -279,7 +281,8 @@ class TypeAnalyzer {
 					i2f.child = b.right;
 					b.right = i2f;
 				}
-				
+
+				b.type = Type.type.INT;
 				ExpInfo result = new ExpInfo(Type.type.INT);
 				result.complete = true;
 				result.isBool = true;
@@ -387,14 +390,17 @@ class TypeAnalyzer {
 			}
 			
 			// Return the function's return type
+			e.type = f.type.ty;
 			return new ExpInfo(f.type.ty);
 		} 
 		else if (e instanceof IntExp) {
 			ExpInfo ei = new ExpInfo(Type.type.INT);
+			e.type = Type.type.INT;
 			return ei;
 		} 
 		else if (e instanceof FloatExp) {
 			ExpInfo ei = new ExpInfo(Type.type.FLOAT);
+			e.type = Type.type.FLOAT;
 			return ei;
 		} 
 		else if (e instanceof IdExp) {
@@ -412,6 +418,7 @@ class TypeAnalyzer {
 				return null;
 			}
 
+			e.type = i.s.type;
 			ExpInfo ei = new ExpInfo(i.s.type);
 			return ei;
 		} 
@@ -428,6 +435,7 @@ class TypeAnalyzer {
 				resultValidity = false;
 			}
 
+			e.type = descend.type;
 			return descend;
 		}
 		return null;

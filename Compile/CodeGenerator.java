@@ -21,6 +21,9 @@ public class CodeGenerator {
     private final String SP = "SP";
     private final String FP = "FP";
 
+    private final String EBP = "FP@";
+    private final String ESP = "SP@";
+
     private final String MOVE = "MOVE";
     private final String ADD = "ADD";
     private final String SUB = "SUB";
@@ -40,11 +43,6 @@ public class CodeGenerator {
     private final String READI = "READI";
     private final String READF = "READF";
     private final String WRITE = "WRITE";
-    
-    
-    //TODO : Will we make EBP, ESP ?
-    //TODO : For ArrayExp, make indirect memory access. Is it enough that 'M(M(idx)@)'?
-
 
     public CodeGenerator(Program p, Table t) {
 		this.root = p;
@@ -65,9 +63,9 @@ public class CodeGenerator {
         //TODO initialize SP, FP
         
         /* Find main function and jump to it */
-        Function main = table.funcMap.get("FUNCTIONmain");
+        Function main = table.funcMap.get("main");
         if (main != null)
-        	instr += makeCode(JMP, "main");
+        	instr += makeCode(JMP, "FUNCTIONmain");
         
         instr += emit(this.root);
         instr += "LAB\t\tEND\n";
@@ -107,6 +105,10 @@ public class CodeGenerator {
 	private String MemRef(int num) {
 		return "MEM(" + num + ")@";
 	}
+	
+	private String MemIndirectRef(int num) {
+		return "MEM(VR(" + num + ")@)@";
+	}
 
     private String MemRef(String composit) {
         return "MEM(" + composit + ")@";
@@ -143,6 +145,7 @@ public class CodeGenerator {
         return instr;
     }
 
+    
     /* emit functions */
 
     private String emit(Program p) {
@@ -475,24 +478,31 @@ public class CodeGenerator {
         String instr = "";
         Symboll s = ast.s;
         int offset = s.getOffset();
-        int baseAddr = 0;
-        
+       
+        /* Calculate array index expression */
         instr += emit(ast.index);
 
         int newReg = newRegister();
-        int offsetReg = newRegister();
-        int indexResult = ast.index.reg;
+        int locReg = newRegister();
+        int indexReg = ast.index.reg;
 
-        if (!s.isGlobal(table)) {
-            baseAddr = 0; //TODO : Set current ebp 
+        if (s.isGlobal(table)) {
+            /* If this variable is in global scope, set base address as 0 */
+            instr += makeCode(ADD, Mem(offset), RegRef(indexReg), Reg(locReg));
+            // *loc = offset + index
+            instr += makeCode(MOVE, MemIndirectRef(locReg), Reg(newReg));
+            // *Mem[*loc]
+        }
+        else {
+            /* base address = %ebp */
+            instr += makeCode(ADD, Mem(offset), EBP, Reg(locReg));
+            // *offset = offset + %ebp
+            instr += makeCode(ADD, RegRef(indexReg), RegRef(locReg), Reg(locReg));
+            // *offset = *offset + index
+
+            instr += makeCode(MOVE, MemIndirectRef(locReg), Reg(newReg));
         }
         
-        instr += makeCode(MOVE, Value(baseAddr), Reg(offsetReg));
-        instr += makeCode(ADD, RegRef(offsetReg), RegRef(indexResult), Reg(offsetReg));
-        instr += makeCode(MOVE, "M(" + "VR(" + offsetReg + ")@" + ")@", Reg(newReg));
-//TODO: No Helper function
-//        instr += makeCode(MOVE, MemRef(RegRef(offsetReg)), Reg(newReg));
-
         ast.reg = newReg;
         return instr;
     }
@@ -504,23 +514,45 @@ public class CodeGenerator {
         int RReg = ast.right.reg;
         int newReg = newRegister();
         int comp = 0;
+
+        String add_t, sub_t, mul_t, div_t;
+        
+        switch(ast.left.type) {
+        case INT:
+        	add_t = ADD;
+        	sub_t = SUB;
+        	mul_t = MUL;
+        	div_t = DIV;
+        	break;
+        case FLOAT:
+        	add_t = FADD;
+        	sub_t = FSUB;
+        	mul_t = FMUL;
+        	div_t = FDIV;
+        	break;
+        default:
+        	add_t = ADD;
+        	sub_t = SUB;
+        	mul_t = MUL;
+        	div_t = DIV;
+        }
        
         switch(ast.op) {
             case PLUS:
-                instr += makeCode(ADD, RegRef(LReg), RegRef(RReg), Reg(newReg));
+                instr += makeCode(add_t, RegRef(LReg), RegRef(RReg), Reg(newReg));
                 break;
             case MINUS:
-                instr += makeCode(SUB, RegRef(LReg), RegRef(RReg), Reg(newReg));
+                instr += makeCode(sub_t, RegRef(LReg), RegRef(RReg), Reg(newReg));
                 break;
             case MULT:
-                instr += makeCode(MUL, RegRef(LReg), RegRef(RReg), Reg(newReg));
+                instr += makeCode(mul_t, RegRef(LReg), RegRef(RReg), Reg(newReg));
                 break;
             case DIV:
-                instr += makeCode(DIV, RegRef(LReg), RegRef(RReg), Reg(newReg));
+                instr += makeCode(div_t, RegRef(LReg), RegRef(RReg), Reg(newReg));
                 break;
             case LT:
                 comp = newRegister();
-                instr += makeCode(SUB, RegRef(LReg), RegRef(RReg), Reg(comp));
+                instr += makeCode(sub_t, RegRef(LReg), RegRef(RReg), Reg(comp));
                 instr += makeCode(JMPN, RegRef(comp), ExpLabel);
                 instr += makeCode(MOVE, Value(0), Reg(newReg)); 
                 instr += makeCode(JMP, ExpLabel+"EXIT");
@@ -530,7 +562,7 @@ public class CodeGenerator {
                 break;
             case GT:
                 comp = newRegister();
-                instr += makeCode(SUB, RegRef(RReg), RegRef(LReg), Reg(comp));
+                instr += makeCode(sub_t, RegRef(RReg), RegRef(LReg), Reg(comp));
                 instr += makeCode(JMPN, RegRef(comp), ExpLabel);
                 instr += makeCode(MOVE, Value(0), Reg(newReg)); 
                 instr += makeCode(JMP, ExpLabel+"EXIT");
@@ -540,7 +572,7 @@ public class CodeGenerator {
                 break;
             case LTEQ:
                 comp = newRegister();
-                instr += makeCode(SUB, RegRef(RReg), RegRef(LReg), Reg(comp));
+                instr += makeCode(sub_t, RegRef(RReg), RegRef(LReg), Reg(comp));
                 instr += makeCode(JMPN, RegRef(comp), ExpLabel);
                 instr += makeCode(MOVE, Value(1), Reg(newReg)); 
                 instr += makeCode(JMP, ExpLabel+"EXIT");
@@ -550,7 +582,7 @@ public class CodeGenerator {
                 break;
             case NOTEQ:
                 comp = newRegister();
-                instr += makeCode(SUB, RegRef(LReg), RegRef(RReg), Reg(comp));
+                instr += makeCode(sub_t, RegRef(LReg), RegRef(RReg), Reg(comp));
                 instr += makeCode(JMPZ, RegRef(comp), ExpLabel);
                 instr += makeCode(MOVE, Value(1), Reg(newReg));
                 instr += makeCode(JMP, ExpLabel+"EXIT");
@@ -560,7 +592,7 @@ public class CodeGenerator {
                 break;
             case EQEQ:
                 comp = newRegister();
-                instr += makeCode(SUB, RegRef(LReg), RegRef(RReg), Reg(comp));
+                instr += makeCode(sub_t, RegRef(LReg), RegRef(RReg), Reg(comp));
                 instr += makeCode(JMPZ, RegRef(comp), ExpLabel);
                 instr += makeCode(MOVE, Value(0), Reg(newReg));
                 instr += makeCode(JMP, ExpLabel+"EXIT");
@@ -620,7 +652,7 @@ public class CodeGenerator {
         String instr; 
         int newReg = newRegister();
 
-        instr = makeCode(MOVE, Value(ast.value), Reg(newReg));    
+        instr = makeCode(MOVE, Value(ast.value), Reg(newReg));
 
         ast.reg = newReg;
         return instr;
@@ -630,14 +662,19 @@ public class CodeGenerator {
         String instr = "";
         Symboll s = ast.s;
         int offset = s.getOffset();
-        int baseAddr = 0;
 
         int newReg = newRegister();
 
-        if (!s.isGlobal(table)) {
-            baseAddr = 0; //TODO : Set current ebp 
+        if (s.isGlobal(table)) {
+            /* If this variable is in global scope, set base address as 0 */
+            instr += makeCode(MOVE, MemRef(offset), Reg(newReg));
         }
-        instr += makeCode(MOVE, MemRef(baseAddr + offset), Reg(newReg));
+        else {
+            /* base address = %ebp */
+            int locReg = newRegister();
+            instr += makeCode(ADD, Mem(offset), EBP, Reg(locReg));
+            instr += makeCode(MOVE, MemIndirectRef(locReg), Reg(newReg));
+        }
 
         ast.reg = newReg;
         return instr;
@@ -654,12 +691,18 @@ public class CodeGenerator {
     }
 
     private String emit(UnOpExp ast) {
-    	String instr;
+    	String instr = "";
         int reg = ast.exp.reg;
         int newReg = newRegister();
-
-        instr = makeCode(MUL, Value(-1), RegRef(reg), Reg(newReg));
-
+        
+        switch(ast.type) {
+        case INT:
+            instr += makeCode(MUL, Value(-1), RegRef(reg), Reg(newReg));
+            break;
+        case FLOAT:
+        	instr += makeCode(FMUL, Value(-1), RegRef(reg), Reg(newReg));
+        }
+        
         ast.reg = newReg;
         return instr;
     }
@@ -685,10 +728,32 @@ public class CodeGenerator {
         ast.reg = newReg;
         return instr;
     }
-    
-    private String emit(Symboll s) {
+
+    private String SCANF(CallExp ast) {
     	String instr = "";
     	
+    	/* argument should be variables! */
+    	Exp v = ast.args.get(0);
+    	instr += emit(v);
+    	
+    	switch(v.type) {
+    	case INT:
+    		instr += makeCode(READI, Reg(v.reg));
+    	case FLOAT:
+    		instr += makeCode(READF, Reg(v.reg));
+    	}
+    	
     	return instr;
+    }
+
+    private String PRINTF(CallExp ast) {
+        String instr = "";
+
+    	/* argument should be variables! */
+        Exp v = ast.args.get(0);
+        instr += emit(v);
+        instr += makeCode(WRITE, RegRef(v.reg));
+        
+        return instr;
     }
 }
