@@ -49,10 +49,6 @@ public class CodeGenerator {
         this.table = t;
 	}
 	
-    public void printInstr() {
-    	System.out.println(emit());
-    }
-	
 	public String emit() {
         String decl = "AREA\t\tSP\n";
         decl += "AREA\t\tFP\n";
@@ -132,7 +128,7 @@ public class CodeGenerator {
 
         int tmp = newRegister();
         instr += makeCode(MOVE, Value(n), Reg(tmp));
-        instr += makeCode(ADD, SP, Reg(tmp), SP);
+        instr += makeCode(ADD, SP + "@", RegRef(tmp), SP);
         return instr;
     }
 
@@ -384,7 +380,8 @@ public class CodeGenerator {
 
         int idReg = newRegister();
         if (ast.id.isGlobal(this.table)) {
-            int globalBaseOffsetReg = newRegister(); //TODO : check: global base = 1 as 0 is reserved for return value
+            int globalBaseOffsetReg = newRegister();
+            //TODO : check: global base = 1 as 0 is reserved for return value
             instr += makeCode(MOVE, Value(1), Reg(globalBaseOffsetReg));
             instr += makeCode(ADD, RegRef(globalBaseOffsetReg), RegRef(offsetReg), Reg(idReg));
         } else {
@@ -516,6 +513,10 @@ public class CodeGenerator {
         int comp = 0;
 
         String add_t, sub_t, mul_t, div_t;
+        if (ast.left.type == null) {
+            System.out.println("ERROR: cannot compile BinOpExp: type is null");
+            return "";
+        }
         
         switch(ast.left.type) {
         case INT:
@@ -636,7 +637,7 @@ public class CodeGenerator {
         instr += makeCode(MOVE, afterCall, Mem(SP + "@"));
 
         /* jmp to call */
-        instr += makeCode(JMP, "FUNCTION" + ast.func.id);
+        instr += makeCode(JMP, "FUNCTION" + ast.funcName);
         instr += makeCode(LAB, afterCall);
 
         /* VR(0) is reserved for return value of call */
