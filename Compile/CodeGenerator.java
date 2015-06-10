@@ -1,5 +1,6 @@
 package Compile;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 
 import Absyn.*;
@@ -15,6 +16,7 @@ public class CodeGenerator {
 	private int regNum = 1;
     private int branchCount = 1;
     private int expCount = 1;
+    private int callCount = 1;
 
     private final String SP = "SP";
     private final String FP = "FP";
@@ -97,10 +99,18 @@ public class CodeGenerator {
 	private String Mem(int num) {
 		return "MEM(" + num + ")";
 	}
+
+    private String Mem(String composit) {
+        return "MEM(" + composit + ")";
+    }
 	
 	private String MemRef(int num) {
 		return "MEM(" + num + ")@";
 	}
+
+    private String MemRef(String composit) {
+        return "MEM(" + composit + ")@";
+    }
 
     /* make formatted T code */
     private String makeCode(String instr, String m1, String m2, String m3) {
@@ -129,7 +139,7 @@ public class CodeGenerator {
 
         int tmp = newRegister();
         instr += makeCode(MOVE, Value(n), Reg(tmp));
-        instr += makeCode(SUB, SP, Reg(tmp), SP);
+        instr += makeCode(SUB, SP + "@", RegRef(tmp), SP);
         return instr;
     }
 
@@ -197,7 +207,16 @@ public class CodeGenerator {
 
     private String emit(Function ast) {
         String fname = "FUNCTION" + ast.id;
-        String instr = "\n" + makeCode(LAB, fname);
+        String instr = makeCode(LAB, fname);
+
+        /* store current FP */
+        int tmpReg = newRegister();
+        instr += makeCode(MOVE, FP + "@", Reg(tmpReg));
+        instr += pushStack(1);
+        instr += makeCode(MOVE, RegRef(tmpReg), Mem(SP + "@"));
+
+        /* change FP to current SP */
+        instr += makeCode(MOVE, SP + "@", FP);
 
         if (ast.paramList != null) {
             instr += emit(ast.paramList);
@@ -304,7 +323,7 @@ public class CodeGenerator {
     }
 
     private String emit(ForStmt ast) {
-        String loopInit = "LOOP" + Value(this.branchCount++);
+        String loopInit = "FOR" + Value(this.branchCount++);
         String loopExit = loopInit + "EXIT";
         String instr = emit(ast.init);
         instr += makeCode(LAB, loopInit);
@@ -319,7 +338,7 @@ public class CodeGenerator {
     }
 
     private String emit(IfStmt ast) {
-        String branchName = "BRANCH" + Value(this.branchCount++);
+        String branchName = "IF" + Value(this.branchCount++);
         String instr = emit(ast.cond);
         instr += makeCode(JMPZ, Reg(ast.cond.reg), "F" + branchName);
         instr += emit(ast.thenClause);
@@ -334,17 +353,83 @@ public class CodeGenerator {
     }
 
     private String emit(RetStmt ast) {
-        //TODO
-        return "";
+
+        String instr = "";
+
+        if (ast.exp != null) {
+            /* VR(0) is reserved for return value */
+            instr += makeCode(MOVE, MemRef(RegRef(ast.exp.reg)), Reg(0));
+        }
+
+        /* change current SP to FP */
+        instr += makeCode(MOVE, FP + "@", SP);
+        /* restore old FP from stack */
+        instr += makeCode(MOVE, SP + "@", FP);
+        instr += popStack(1);
+
+        /* get return address */
+        instr += makeCode(JMP, MemRef(SP + "@"));
+
+        return instr;
     }
 
     private String emit(SwitchStmt ast) {
-        //TODO
-        return "";
+        String instr = "";
+        //VR(newReg) = SP + Value(ast.id.offset)
+        int offsetReg = newRegister();
+        instr += makeCode(MOVE, Value(ast.id.offset), Reg(offsetReg));
+
+        int idReg = newRegister();
+        if (ast.id.isGlobal(this.table)) {
+            int globalBaseOffsetReg = newRegister(); //TODO : check: global base = 1 as 0 is reserved for return value
+            instr += makeCode(MOVE, Value(1), Reg(globalBaseOffsetReg));
+            instr += makeCode(ADD, RegRef(globalBaseOffsetReg), RegRef(offsetReg), Reg(idReg));
+        } else {
+            instr += makeCode(ADD, SP + "@", RegRef(offsetReg), Reg(idReg));
+        }
+
+        String branchName = "SWITCH" + Value(this.branchCount++);
+        String branchExit = branchName + "EXIT";
+
+        /*
+        TODO change it to call emit(CaseList ast)
+        prob: how to handle branch name T_T
+        */
+        Iterator<Case> iter = ast.clist.list.iterator();
+        Case item;
+        String jmpTable = "";
+        String body = "";
+        while (iter.hasNext()) {
+            item = iter.next();
+            String caseName;
+
+            if (item == ast.clist.defaultCase) {
+                caseName = branchName + "DEFAULTCASE";
+                jmpTable += makeCode(JMP, caseName);
+            } else {
+                int caseReg = newRegister();
+                int tmpReg = newRegister();
+                caseName = branchName + "CASE" + Value(item.casenum);
+                jmpTable += makeCode(MOVE, Value(item.casenum), Reg(caseReg));
+                jmpTable += makeCode(SUB, RegRef(idReg), RegRef(caseReg), Reg(tmpReg));
+                jmpTable += makeCode(JMPZ, caseName);
+            }
+
+            body += makeCode(LAB, caseName);
+            body += emit(item.slist);
+            if (item.br) {
+                body += makeCode(JMP, branchExit);
+            }
+        }
+        instr += jmpTable + body;
+
+        //lab case exit
+        instr += makeCode(LAB, branchExit);
+        return instr;
     }
 
     private String emit(WhileStmt ast) {
-        String loopInit = "LOOP" + Value(this.branchCount++);
+        String loopInit = "WHILE" + Value(this.branchCount++);
         String loopExit = loopInit + "EXIT";
         String instr = makeCode(LAB, loopInit);
         instr += emit(ast.cond);
@@ -490,7 +575,45 @@ public class CodeGenerator {
     }
 
     private String emit(CallExp ast) {
-    	return "";
+        String instr = "";
+        int callId = this.callCount++;
+        int argSize = 0;
+
+        /* push arguments to stack in reverse order */
+        ArrayList<Exp> argList = ast.args.list;
+        ArrayList<Exp> reverseArgList = new ArrayList<Exp>();
+
+        Iterator<Exp> iterArg = argList.iterator();
+        Exp item;
+        while (iterArg.hasNext()) {
+            item = iterArg.next();
+            reverseArgList.add(item);
+        }
+
+        Iterator<Exp> iterR = argList.iterator();
+        while (iterR.hasNext()) {
+            item = iterR.next();
+            instr += pushStack(1);
+            argSize += 1;
+            instr += makeCode(MOVE, RegRef(item.reg), SP);
+        }
+
+        /* push return address */
+        String afterCall = "AFTERCALL" + Value(callId);
+        instr += pushStack(1);
+        instr += makeCode(MOVE, afterCall, Mem(SP + "@"));
+
+        /* jmp to call */
+        instr += makeCode(JMP, "FUNCTION" + ast.func.id);
+        instr += makeCode(LAB, afterCall);
+
+        /* VR(0) is reserved for return value of call */
+        ast.reg = 0;
+
+        /* restore SP */
+        instr += popStack(argSize);
+
+        return instr;
     }
 
     private String emit(FloatExp ast) {
