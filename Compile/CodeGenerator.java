@@ -63,9 +63,9 @@ public class CodeGenerator {
         //TODO initialize SP, FP
         
         /* Find main function and jump to it */
-        Function main = table.funcMap.get("FUNCTIONmain");
+        Function main = table.funcMap.get("main");
         if (main != null)
-        	instr += makeCode(JMP, "main");
+        	instr += makeCode(JMP, "FUNCTIONmain");
         
         instr += emit(this.root);
         instr += "LAB\t\tEND\n";
