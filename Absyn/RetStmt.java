@@ -2,6 +2,7 @@ package Absyn;
 
 public class RetStmt extends Stmt {
 	public Exp exp;
+	public String func_id;
 	
 	public RetStmt(int l, int p) {
 		line = l;

@@ -38,8 +38,11 @@ public class TableFiller {
 
 		for (int i = 0; i < sl.size(); i++) {
 			Symboll id = sl.get(i);
+			boolean isglobal = false;
+			if (current.loc == "GLOBAL")
+				isglobal = true;
 			
-			id = new Symboll(type.ty, id.name, id.array, true, i, id.line, id.pos);
+			id = new Symboll(type.ty, id.name, id.array, true, i, id.line, id.pos, isglobal);
 			sl.set(i, id);
 			
 			current.addBind(id.name, id);
@@ -74,7 +77,7 @@ public class TableFiller {
 			Symboll id = pl.getSymbol(i);
 			Type type = pl.getType(i);
 			
-			id = new Symboll(type.ty, id.name, id.array, false, i, id.line, id.pos);
+			id = new Symboll(type.ty, id.name, id.array, false, i, id.line, id.pos, false);
 			pl.replaceSymbol(i, id);
 
 			current.addBind(id.name, id);
@@ -160,6 +163,7 @@ public class TableFiller {
 		}
 		else if (s instanceof RetStmt) {
 			RetStmt r = (RetStmt) s;
+			r.func_id = current.getFuncScope().loc;
 			if (r.exp != null)
 				visit(r.exp);
 		}

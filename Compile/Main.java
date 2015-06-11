@@ -29,7 +29,15 @@ public class Main {
 
         CodeGenerator gen = new CodeGenerator(parser.program, parser.table);
         int extension = filename.indexOf('.');
-        String Tcodename = filename.substring(0, extension) + ".T";
+        System.out.println(extension);
+        
+        String Tcodename;
+        
+        if (extension == -1)
+        	Tcodename = filename + ".T";
+        else
+        	Tcodename = filename.substring(0, extension) + ".T";
+        
         try {
             BufferedWriter out = new BufferedWriter(new FileWriter(Tcodename));
             out.write(gen.emit());

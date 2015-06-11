@@ -14,6 +14,7 @@ public class Symboll {
 	public String name;         // name
 	public int array = -1;           // size of array, (if array=1, it is a simple variable)
 	public boolean var;         // if false, it is a parameter
+	public boolean globalvar;
 	
 	public int line;
 	public int pos;
@@ -41,7 +42,7 @@ public class Symboll {
         array = index;
     }
 
-	public Symboll(Type.type t, String n, int size, boolean v, int paramIdx, int l, int p) {
+	public Symboll(Type.type t, String n, int size, boolean v, int paramIdx, int l, int p, boolean isglobal) {
 		line = l;
 		pos = p;
 		
@@ -49,6 +50,7 @@ public class Symboll {
 		name = n;
 		array = size;
 		var = v;
+		globalvar = isglobal;
 		
 		init = true;
 		declared = true;
@@ -57,14 +59,17 @@ public class Symboll {
         
         if (var) {
             /* If variable, just give a new location */
-            offset = locpoint;                    
+        	if (isglobal)
+        		offset = locpoint;
+        	else
+        		offset = locpoint + 1;
             if (array == 0)
                 locpoint++;
             else
                 locpoint += array;        
         }
         else {
-            offset = -paramIdx-1;
+            offset = -paramIdx-2;
         }
 	}
 	
@@ -92,13 +97,8 @@ public class Symboll {
 		this.duplicated = d;
 	}
 
-    public boolean isGlobal(Table table) {
-        Symboll s = table.global.lookup(this.name);
-
-        if (s == null)
-            return false;
-        
-        return this.hiddenId == s.hiddenId;
+    public boolean isGlobal() {
+        return this.globalvar;
 	}
 
     public String getHidden() {
