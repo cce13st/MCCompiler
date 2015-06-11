@@ -145,7 +145,6 @@ public class CodeGenerator {
 		if (dl != null) {
 			instr += emit(dl);
 		}
-		System.out.println(instr);
 
 		/* Find main function and jump to it */
 		Function main = table.funcMap.get("main");
@@ -432,7 +431,6 @@ public class CodeGenerator {
 		//lab case exit
 		instr += makeCode(LAB, branchExit);
 		
-		System.out.println(instr);
 		return instr;
 	}
 
@@ -531,7 +529,6 @@ public class CodeGenerator {
 
 		String add_t, sub_t, mul_t, div_t;
 		if (ast.left.type == null) {
-			System.out.println("ERROR: cannot compile BinOpExp: type is null");
 			return "";
 		}
 
@@ -736,22 +733,24 @@ public class CodeGenerator {
 	}
 
 	private String emit(F2IExp ast) {
-		String instr;
+		String instr = "";
+		instr += emit(ast.child);
 		int reg = ast.child.reg;
 		int newReg = newRegister();
 
-		instr = makeCode(F2I, Reg(reg), Reg(newReg));
+		instr += makeCode(F2I, RegRef(reg), Reg(newReg));
 
 		ast.reg = newReg;
 		return instr;
 	}
 
 	private String emit(I2FExp ast) {
-		String instr;
+		String instr = "";
+		instr += emit(ast.child);
 		int reg = ast.child.reg;
 		int newReg = newRegister();
 
-		instr = makeCode(I2F, Reg(reg), Reg(newReg));
+		instr += makeCode(I2F, RegRef(reg), Reg(newReg));
 
 		ast.reg = newReg;
 		return instr;
