@@ -53,11 +53,10 @@ public class CodeGenerator {
 		decl += "AREA\t\tMEM\n\n";
 
 		String instr = "LAB\t\tSTART\n";
-		//TODO initialize SP, FP
 		
 		instr += makeCode(MOVE, Value(0), FP);
 		instr += makeCode(MOVE, Value(0), SP);
-
+		
 		instr += emit(this.root);
 		instr += "LAB\t\tEND\n";
 		return decl + instr;
@@ -95,10 +94,6 @@ public class CodeGenerator {
 
 	private String MemRef(int num) {
 		return "MEM(" + num + ")@";
-	}
-
-	private String MemIndirectRef(int num) {
-		return "MEM(VR(" + num + ")@)@";
 	}
 
 	private String MemRef(String composit) {
@@ -160,9 +155,15 @@ public class CodeGenerator {
 		instr += makeCode(JMP, "END");
 		
 		instr += "\n";
+		instr += make_scanf(Type.type.INT);
+		instr += make_scanf(Type.type.FLOAT);
+		instr += make_printf();
+		instr += "\n";
+		
 		if (fl != null) {
 			instr += emit(fl);
 		}
+		instr += makeCode(LAB, "END");
 		
 		return instr;
 	}
@@ -233,7 +234,7 @@ public class CodeGenerator {
 		/* change current SP to FP */
 		instr += makeCode(MOVE, FP + "@", SP);
 		/* restore old FP from stack */
-		instr += makeCode(MOVE, SP + "@", FP);
+		instr += makeCode(MOVE, MemRef(SP + "@"), FP);
 		instr += popStack(1);
 
 		/* get return address */
@@ -243,19 +244,9 @@ public class CodeGenerator {
 	}
 
 	private String emit(ParamList ast) {
-		/* This is a leaf node! */
-		String instr = "";
+		/* Unused!! */
 
-		/*
-        Iterator<Symboll> iter = ast.slist.iterator();
-
-        Symboll item;
-        while (iter.hasNext()) {
-            item = iter.next();
-        }
-		 */
-
-		return instr;
+		return "";
 	}
 
 	private String emit(StmtList ast) {
@@ -379,7 +370,7 @@ public class CodeGenerator {
 		if (ast.exp != null) {
 			/* VR(0) is reserved for return value */
 			instr += emit(ast.exp);
-			instr += makeCode(MOVE, MemRef(RegRef(ast.exp.reg)), Reg(0));
+			instr += makeCode(MOVE, RegRef(ast.exp.reg), Reg(0));
 		}
 		
 		instr += makeCode(JMP, "FUNCTION" + ast.func_id + "EXIT");
@@ -500,19 +491,19 @@ public class CodeGenerator {
 
 		if (s.isGlobal()) {
 			/* If this variable is in global scope, set base address as 0 */
-			instr += makeCode(ADD, Mem(offset), RegRef(indexReg), Reg(locReg));
+			instr += makeCode(ADD, Value(offset), RegRef(indexReg), Reg(locReg));
 			// *loc = offset + index
-			instr += makeCode(MOVE, MemIndirectRef(locReg), Reg(newReg));
+			instr += makeCode(MOVE, MemRef(RegRef(locReg)), Reg(newReg));
 			// *Mem[*loc]
 		}
 		else {
 			/* base address = Frame Pointer */
-			instr += makeCode(ADD, Mem(offset), FP+"@", Reg(locReg));
+			instr += makeCode(ADD, Value(offset), FP+"@", Reg(locReg));
 			// *offset = offset + FP
 			instr += makeCode(ADD, RegRef(indexReg), RegRef(locReg), Reg(locReg));
 			// *offset = *offset + index
 
-			instr += makeCode(MOVE, MemIndirectRef(locReg), Reg(newReg));
+			instr += makeCode(MOVE, MemRef(RegRef(locReg)), Reg(newReg));
 		}
 
 		ast.reg = newReg;
@@ -522,6 +513,10 @@ public class CodeGenerator {
 	private String emit(BinOpExp ast) {
 		String ExpLabel = "EXP" + Value(this.expCount++);
 		String instr = "";
+		
+		instr += emit(ast.left);
+		instr += emit(ast.right);
+		
 		int LReg = ast.left.reg;
 		int RReg = ast.right.reg;
 		int newReg = newRegister();
@@ -623,6 +618,10 @@ public class CodeGenerator {
 	}
 
 	private String emit(CallExp ast) {
+		if (ast.funcName == "scanf") {
+			return call_scanf(ast);
+		}
+		
 		String instr = "";
 		int callId = this.callCount++;
 		int argSize = 0;
@@ -636,6 +635,7 @@ public class CodeGenerator {
 			Exp item;
 			while (iterArg.hasNext()) {
 				item = iterArg.next();
+				instr += emit(item);
 				reverseArgList.add(0, item);
 			}
 
@@ -644,7 +644,7 @@ public class CodeGenerator {
 				item = iterR.next();
 				instr += pushStack(1);
 				argSize += 1;
-				instr += makeCode(MOVE, RegRef(item.reg), SP);
+				instr += makeCode(MOVE, RegRef(item.reg), Mem(SP + "@"));
 			}
 		}
 
@@ -690,8 +690,8 @@ public class CodeGenerator {
 		else {
 			/* base address = Frame Pointer */
 			int locReg = newRegister();
-			instr += makeCode(ADD, Mem(offset), FP+"@", Reg(locReg));
-			instr += makeCode(MOVE, MemIndirectRef(locReg), Reg(newReg));
+			instr += makeCode(ADD, Value(offset), FP+"@", Reg(locReg));
+			instr += makeCode(MOVE, MemRef(RegRef(locReg)), Reg(newReg));
 		}
 
 		ast.reg = newReg;
@@ -746,32 +746,115 @@ public class CodeGenerator {
 		ast.reg = newReg;
 		return instr;
 	}
-//
-//	private String make_scanf() {
-//		String instr = "";
-//
-//		/* argument should be variables! */
-//		Exp v = ast.args.get(0);
-//		instr += emit(v);
-//
-//		switch(v.type) {
-//		case INT:
-//			instr += makeCode(READI, Reg(v.reg));
-//		case FLOAT:
-//			instr += makeCode(READF, Reg(v.reg));
-//		}
-//
-//		return instr;
-//	}
-//
-//	private String make_printf() {
-//		String instr = "";
-//
-//		/* argument should be variables! */
-//		Exp v = ast.args.get(0);
-//		instr += emit(v);
-//		instr += makeCode(WRITE, RegRef(v.reg));
-//
-//		return instr;
-//	}
+	
+	private String call_scanf(CallExp ast) {
+		String instr = "";
+		int callId = this.callCount++;
+		int argSize = 0;
+		
+		IdExp var = (IdExp) ast.args.get(0);
+		Symboll s = var.s;
+		int offset = s.getOffset();
+
+		int newReg = newRegister();
+
+		if (s.isGlobal()) {
+			/* If this variable is in global scope, set base address as 0 */
+			instr += makeCode(MOVE, Value(offset), Reg(newReg));
+		}
+		else {
+			/* base address = Frame Pointer */
+			instr += makeCode(ADD, Value(offset), FP+"@", Reg(newReg));
+		}
+
+		instr += pushStack(1);
+		argSize += 1;
+		instr += makeCode(MOVE, RegRef(newReg), Mem(SP + "@"));
+
+		/* push return address */
+		String afterCall = "AFTERCALL" + Value(callId);
+		instr += pushStack(1);
+		instr += makeCode(MOVE, afterCall, Mem(SP + "@"));
+
+		/* jmp to call */
+		instr += makeCode(JMP, "FUNCTION" + ast.funcName + var.type);
+		instr += makeCode(LAB, afterCall);
+
+		/* VR(0) is reserved for return value of call */
+		ast.reg = 0;
+
+		/* restore SP */
+		instr += popStack(argSize + 1);
+
+		return instr;
+	}
+
+	private String make_scanf(Type.type t) {
+		String fname;
+		if (t == Type.type.INT)
+			fname = "FUNCTIONscanfINT";
+		else
+			fname = "FUNCITONscanfFLOAT";
+		
+		String instr = makeCode(LAB, fname);
+
+		/* store current FP */
+		instr += pushStack(1);
+		instr += makeCode(MOVE, FP + "@", Mem(SP + "@"));
+
+		/* change FP to current SP */
+		instr += makeCode(MOVE, SP + "@", FP);
+
+		/* WRITE code */
+		int newReg = newRegister();
+		instr += makeCode(ADD, Value(-2), FP + "@", Reg(newReg));
+		
+		if (t == Type.type.INT)
+			instr += makeCode(READI, Mem(MemRef(RegRef(newReg))));
+		else
+			instr += makeCode(READF, Mem(MemRef(RegRef(newReg))));
+
+		instr += makeCode(LAB, fname + "EXIT");
+
+		/* change current SP to FP */
+		instr += makeCode(MOVE, FP + "@", SP);
+		/* restore old FP from stack */
+		instr += makeCode(MOVE, MemRef(SP + "@"), FP);
+		instr += popStack(1);
+
+		/* get return address */
+		instr += makeCode(JMP, MemRef(SP + "@"));
+		
+		return instr;
+	}
+
+	private String make_printf() {
+		String fname = "FUNCTIONprintf";
+		String instr = makeCode(LAB, fname);
+
+		/* store current FP */
+		instr += pushStack(1);
+		instr += makeCode(MOVE, FP + "@", Mem(SP + "@"));
+
+		/* change FP to current SP */
+		instr += makeCode(MOVE, SP + "@", FP);
+
+		/* WRITE code */
+		int newReg = newRegister();
+		instr += makeCode(ADD, Value(-2), FP + "@", Reg(newReg));
+		instr += makeCode(WRITE, MemRef(RegRef(newReg)));
+
+		instr += makeCode(LAB, fname + "EXIT");
+
+		/* change current SP to FP */
+		instr += makeCode(MOVE, FP + "@", SP);
+		/* restore old FP from stack */
+		instr += makeCode(MOVE, MemRef(SP + "@"), FP);
+		instr += popStack(1);
+
+		/* get return address */
+		instr += makeCode(JMP, MemRef(SP + "@"));
+		
+		return instr;
+	}
 }

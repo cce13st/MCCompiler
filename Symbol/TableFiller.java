@@ -1,6 +1,7 @@
 package Symbol;
 
 import Absyn.*;
+
 import java.util.ArrayList;
 
 public class TableFiller {
@@ -53,6 +54,12 @@ public class TableFiller {
 		for (int i = 0; i < fl.length; i++) {
 			visit(fl.get(i));
 		}
+		
+		Function printf = new Function(0, 0, null, "printf", null, null);
+		Function scanf = new Function(0, 0, null, "scanf", null, null);
+		
+		table.addFunction(printf);
+		table.addFunction(scanf);
 	}
 
 	public void visit(Function f) {

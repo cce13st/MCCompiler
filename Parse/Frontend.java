@@ -20,8 +20,6 @@ public class Frontend {
 
 	public void build(String filename) throws Exception {
 		PrintStream outstream = null;
-        outstream = new PrintStream(new FileOutputStream(treeOut));
-        System.setOut(outstream);
 
 		BufferedReader in = new BufferedReader(new FileReader(filename));
 		Lexer l = new Lexer(in);
@@ -29,19 +27,21 @@ public class Frontend {
 
 		Program a = (Program) p.parse().value;
 		Visitor v = new Visitor(a);
-		v.printAST();
 		
-        outstream = new PrintStream(new FileOutputStream(tableOut));
-        System.setOut(outstream);  
 		
 		Table t = new Table();
 		t.fillTable(a);
+		t.typeAnalysis(a);
+		
+        outstream = new PrintStream(new FileOutputStream(tableOut));
+        System.setOut(outstream);  
 		t.printTable();
+
+        outstream = new PrintStream(new FileOutputStream(treeOut));
+        System.setOut(outstream);
 		v.printAST();
 		
-
 		System.setOut(new PrintStream(new FileOutputStream(FileDescriptor.out)));
-		t.typeAnalysis(a);
 		
 		this.program = a;
 		this.table = t;

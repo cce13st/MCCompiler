@@ -42,11 +42,11 @@ public class StaticError {
 	}
 	
 	public static void NotArrayArg(int line, int pos) {
-		System.out.println(Error() + LinePos(line, pos) + "Argument type mismatched between array and value");
+		System.out.println(Error() + LinePos(line, pos) + "Argument type mismatched between array and value - 1");
 	}
 
 	public static void NotArrayParam(int line, int pos) {
-		System.out.println(Error() + LinePos(line, pos) + "Argument type mismatched between array and value");
+		System.out.println(Error() + LinePos(line, pos) + "Argument type mismatched between array and value - 2");
 	}
 	
 	public static void ArgsNumber(String funcName, int line, int pos) {

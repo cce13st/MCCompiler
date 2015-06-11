@@ -18,7 +18,7 @@ public class Main {
         if (argv.length > 0)
             filename = argv[0];
         else
-            filename = "tests/input.txt";
+            filename = "tests/PA4_test_inputs/3_printf2.c";
 
         Frontend parser = new Frontend();
         try {

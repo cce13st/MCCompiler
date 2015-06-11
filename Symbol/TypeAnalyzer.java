@@ -239,7 +239,7 @@ class TypeAnalyzer {
 				return null;
 
 			if (!li.isNumber() || !ri.isNumber()) {
-				System.err.println("Operation type mismatched - BinOp : " + b.op);
+				System.out.println("Operation type mismatched - BinOp : " + b.op);
 				return null;
 			}
 
@@ -247,8 +247,9 @@ class TypeAnalyzer {
 					|| b.op == BinOpExp.Op.MULT || b.op == BinOpExp.Op.PLUS) {
 				Type.type conv;
 				
-				if (li.isInteger() && ri.isInteger())
+				if (li.isInteger() && ri.isInteger()) {
 					conv = Type.type.INT;
+				}
 				else {
 					if (li.isInteger()) {
 						I2FExp i2f = new I2FExp(b.left.line, b.left.pos, b.left);
@@ -289,6 +290,12 @@ class TypeAnalyzer {
 		} 
 		else if (e instanceof CallExp) {
 			CallExp c = (CallExp) e;
+			
+			if (c.funcName.equals("printf") || c.funcName.equals("scanf")) {
+				Exp arg = c.args.get(0);
+				visit(arg);
+				return new ExpInfo(Type.type.INT);
+			}
 
 			// Check if function declared
 			Function f = table.funcMap.get(c.funcName);
@@ -403,7 +410,7 @@ class TypeAnalyzer {
 		} 
 		else if (e instanceof IdExp) {
 			IdExp i = (IdExp) e;
-						
+			
 			if (!i.s.isDeclared()) {
 				StaticError.VarNotDeclared(i.s, current, i.line, i.pos);
 				resultValidity = false;
