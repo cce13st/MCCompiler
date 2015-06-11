@@ -21,9 +21,6 @@ public class CodeGenerator {
     private final String SP = "SP";
     private final String FP = "FP";
 
-    private final String EBP = "FP@";
-    private final String ESP = "SP@";
-
     private final String MOVE = "MOVE";
     private final String ADD = "ADD";
     private final String SUB = "SUB";
@@ -295,16 +292,16 @@ public class CodeGenerator {
             instr += makeCode(MOVE, Value(offset), Reg(offsetReg));
             instr += makeCode(ADD, RegRef(ast.index.reg), RegRef(offsetReg), Reg(offsetReg));
             if (!s.isGlobal(table))
-                instr += makeCode(ADD, EBP, RegRef(offsetReg), Reg(offsetReg));
+                instr += makeCode(ADD, FP+"@", RegRef(offsetReg), Reg(offsetReg));
 
-            instr += makeCode(MOVE, RegRef(rhsReg), "M(VR(" + offsetReg + ")@)");
+            instr += makeCode(MOVE, RegRef(rhsReg), Mem(RegRef(offsetReg)));
         }
         else {
             instr += makeCode(MOVE, Value(offset), Reg(offsetReg));
             if (!s.isGlobal(table))
-                instr += makeCode(ADD, EBP, RegRef(offsetReg), Reg(offsetReg));
+                instr += makeCode(ADD, FP+"@", RegRef(offsetReg), Reg(offsetReg));
 
-            instr += makeCode(MOVE, RegRef(rhsReg), "M(VR(" + offsetReg + ")@)");
+            instr += makeCode(MOVE, RegRef(rhsReg), Mem(RegRef(offsetReg)));
         }
         
         return instr;
@@ -497,9 +494,9 @@ public class CodeGenerator {
             // *Mem[*loc]
         }
         else {
-            /* base address = %ebp */
-            instr += makeCode(ADD, Mem(offset), EBP, Reg(locReg));
-            // *offset = offset + %ebp
+            /* base address = Frame Pointer */
+            instr += makeCode(ADD, Mem(offset), FP+"@", Reg(locReg));
+            // *offset = offset + FP
             instr += makeCode(ADD, RegRef(indexReg), RegRef(locReg), Reg(locReg));
             // *offset = *offset + index
 
@@ -677,9 +674,9 @@ public class CodeGenerator {
             instr += makeCode(MOVE, MemRef(offset), Reg(newReg));
         }
         else {
-            /* base address = %ebp */
+            /* base address = Frame Pointer */
             int locReg = newRegister();
-            instr += makeCode(ADD, Mem(offset), EBP, Reg(locReg));
+            instr += makeCode(ADD, Mem(offset), FP+"@", Reg(locReg));
             instr += makeCode(MOVE, MemIndirectRef(locReg), Reg(newReg));
         }
 
