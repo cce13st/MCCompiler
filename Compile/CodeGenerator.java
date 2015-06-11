@@ -284,22 +284,27 @@ public class CodeGenerator {
     	String instr = "";
     	Symboll s = ast.s;
     	int offset = s.getOffset();
-    	int baseAddr = 0;
-    	
-    	if (!s.isGlobal(table))
-    		baseAddr = 0; //TODO : set a ebp of current procedure
     	
     	instr += emit(ast.rhs);
     	
-    	int newReg = newRegister();
+        int offsetReg = newRegister();
     	int rhsReg = ast.rhs.reg;
-    	
-    	if (ast.index == null) {
-    		instr += makeCode(MOVE, RegRef(rhsReg), Mem(baseAddr + s.getOffset()));
-    	}
-    	
-    	if (ast.index != null)
-    		instr += emit(ast.index);
+
+        if (ast.index != null) {
+            instr += emit(ast.index);
+            instr += makeCode(MOVE, Value(offset), Reg(offsetReg));
+            instr += makeCode(ADD, RegRef(ast.index.reg), RegRef(offsetReg), Reg(offsetReg));
+            if (!s.isGlobal(table))
+                instr += makeCode(ADD, EBP, RegRef(offsetReg), Reg(offsetReg));
+
+            instr += makeCode(MOVE, RegRef(rhsReg), "M(VR(" + offsetReg + ")@)");
+        }
+        else {
+            instr += makeCode(MOVE, Value(offset), Reg(offsetReg));
+            if (!s.isGlobal(table))
+                instr += makeCode(ADD, EBP, RegRef(offsetReg), Reg(offsetReg));
+
+            instr += makeCode(MOVE, RegRef(rhsReg), "M(VR(" + offsetReg + ")@)");
     	
         return instr;
     }
