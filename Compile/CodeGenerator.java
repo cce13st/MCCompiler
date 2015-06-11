@@ -345,7 +345,6 @@ public class CodeGenerator {
         instr += makeCode(JMPZ, Reg(ast.cond.reg), "F" + branchName);
         instr += emit(ast.thenClause);
         instr += makeCode(JMP, branchName + "EXIT");
-        //TODO : What is this F?
         instr += makeCode(LAB, "F" + branchName);
         if (ast.elseClause != null) {
             instr += emit(ast.elseClause);
