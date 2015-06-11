@@ -38,9 +38,11 @@ public class Frontend {
 		t.fillTable(a);
 		t.printTable();
 		v.printAST();
+		
+
+		System.setOut(new PrintStream(new FileOutputStream(FileDescriptor.out)));
 		t.typeAnalysis(a);
 		
-		System.setOut(new PrintStream(new FileOutputStream(FileDescriptor.out)));
 		this.program = a;
 		this.table = t;
 	}

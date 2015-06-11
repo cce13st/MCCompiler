@@ -305,7 +305,8 @@ public class CodeGenerator {
                 instr += makeCode(ADD, EBP, RegRef(offsetReg), Reg(offsetReg));
 
             instr += makeCode(MOVE, RegRef(rhsReg), "M(VR(" + offsetReg + ")@)");
-    	
+        }
+        
         return instr;
     }
 

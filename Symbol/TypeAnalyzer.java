@@ -26,11 +26,9 @@ class TypeAnalyzer {
 		current = global;
 		currentIdx = 0;
 
-		System.out.println("================ Type analysis start ================");
+		System.out.println("- Type analysis -");
 		visit(root);
 		
-
-		System.out.println("================ Type analysis end ================");
 		System.out.println("");
 		return resultValidity;
 	}
