@@ -17,6 +17,7 @@ public class CodeGenerator {
 	private int branchCount = 1;
 	private int expCount = 1;
 	private int callCount = 1;
+	private int caseCount = 1;
 
 	private final String SP = "SP";
 	private final String FP = "FP";
@@ -56,6 +57,7 @@ public class CodeGenerator {
 		
 		instr += makeCode(MOVE, Value(0), FP);
 		instr += makeCode(MOVE, Value(0), SP);
+		instr += makeCode(MOVE, Value(0), Reg(0));
 		
 		instr += emit(this.root);
 		instr += "LAB\t\tEND\n";
@@ -163,7 +165,6 @@ public class CodeGenerator {
 		if (fl != null) {
 			instr += emit(fl);
 		}
-		instr += makeCode(LAB, "END");
 		
 		return instr;
 	}
@@ -229,7 +230,7 @@ public class CodeGenerator {
 		}
 		instr += emit(ast.compoundStmt);
 
-		instr += makeCode(LAB, fname + "EXIT");
+		instr += makeCode(LAB, "EXIT" + fname);
 
 		/* change current SP to FP */
 		instr += makeCode(MOVE, FP + "@", SP);
@@ -336,11 +337,11 @@ public class CodeGenerator {
 
 	private String emit(ForStmt ast) {
 		String loopInit = "FOR" + Value(this.branchCount++);
-		String loopExit = loopInit + "EXIT";
+		String loopExit = "EXIT" + loopInit;
 		String instr = emit(ast.init);
 		instr += makeCode(LAB, loopInit);
 		instr += emit(ast.cond);
-		instr += makeCode(JMPZ, Reg(ast.cond.reg), loopExit);
+		instr += makeCode(JMPZ, RegRef(ast.cond.reg), loopExit);
 		instr += emit(ast.body);
 		instr += emit(ast.post);
 		instr += makeCode(JMP, loopInit);
@@ -352,14 +353,14 @@ public class CodeGenerator {
 	private String emit(IfStmt ast) {
 		String branchName = "IF" + Value(this.branchCount++);
 		String instr = emit(ast.cond);
-		instr += makeCode(JMPZ, Reg(ast.cond.reg), "F" + branchName);
+		instr += makeCode(JMPZ, RegRef(ast.cond.reg), "F" + branchName);
 		instr += emit(ast.thenClause);
-		instr += makeCode(JMP, branchName + "EXIT");
+		instr += makeCode(JMP, "EXIT" + branchName);
 		instr += makeCode(LAB, "F" + branchName);
 		if (ast.elseClause != null) {
 			instr += emit(ast.elseClause);
 		}
-		instr += makeCode(LAB, branchName + "EXIT");
+		instr += makeCode(LAB, "EXIT" + branchName);
 		return instr;
 	}
 
@@ -373,7 +374,7 @@ public class CodeGenerator {
 			instr += makeCode(MOVE, RegRef(ast.exp.reg), Reg(0));
 		}
 		
-		instr += makeCode(JMP, "FUNCTION" + ast.func_id + "EXIT");
+		instr += makeCode(JMP, "EXITFUNCTION" + ast.func_id);
 
 		return instr;
 	}
@@ -384,18 +385,17 @@ public class CodeGenerator {
 		int offsetReg = newRegister();
 		instr += makeCode(MOVE, Value(ast.id.offset), Reg(offsetReg));
 
-		int idReg = newRegister();
+		int idLocReg = newRegister();
 		if (ast.id.isGlobal()) {
-			int globalBaseOffsetReg = newRegister();
-			//TODO : check: global base = 1 as 0 is reserved for return value
-			instr += makeCode(MOVE, Value(1), Reg(globalBaseOffsetReg));
-			instr += makeCode(ADD, RegRef(globalBaseOffsetReg), RegRef(offsetReg), Reg(idReg));
+			instr += makeCode(ADD, Value(0), RegRef(offsetReg), Reg(idLocReg));
 		} else {
-			instr += makeCode(ADD, SP + "@", RegRef(offsetReg), Reg(idReg));
+			instr += makeCode(ADD, FP + "@", RegRef(offsetReg), Reg(idLocReg));
 		}
+		int idReg = newRegister();
+		instr += makeCode(MOVE, MemRef(RegRef(idLocReg)), Reg(idReg));
 
 		String branchName = "SWITCH" + Value(this.branchCount++);
-		String branchExit = branchName + "EXIT";
+		String branchExit = "EXIT" + branchName;
 
 		/*
         TODO change it to call emit(CaseList ast)
@@ -410,15 +410,15 @@ public class CodeGenerator {
 			String caseName;
 
 			if (item == ast.clist.defaultCase) {
-				caseName = branchName + "DEFAULTCASE";
+				caseName = "DEFAULTCASE" + branchName;
 				jmpTable += makeCode(JMP, caseName);
 			} else {
 				int caseReg = newRegister();
 				int tmpReg = newRegister();
-				caseName = branchName + "CASE" + Value(item.casenum);
+				caseName = "CASE" + Value(caseCount++);
 				jmpTable += makeCode(MOVE, Value(item.casenum), Reg(caseReg));
 				jmpTable += makeCode(SUB, RegRef(idReg), RegRef(caseReg), Reg(tmpReg));
-				jmpTable += makeCode(JMPZ, caseName);
+				jmpTable += makeCode(JMPZ, RegRef(tmpReg), caseName);
 			}
 
 			body += makeCode(LAB, caseName);
@@ -431,15 +431,17 @@ public class CodeGenerator {
 
 		//lab case exit
 		instr += makeCode(LAB, branchExit);
+		
+		System.out.println(instr);
 		return instr;
 	}
 
 	private String emit(WhileStmt ast) {
 		String loopInit = "WHILE" + Value(this.branchCount++);
-		String loopExit = loopInit + "EXIT";
+		String loopExit = "EXIT" + loopInit;
 		String instr = makeCode(LAB, loopInit);
 		instr += emit(ast.cond);
-		instr += makeCode(JMPZ, Reg(ast.cond.reg), loopExit);
+		instr += makeCode(JMPZ, RegRef(ast.cond.reg), loopExit);
 		instr += emit(ast.body);
 		instr += makeCode(JMP, loopInit);
 		instr += makeCode(LAB, loopExit);
@@ -515,7 +517,12 @@ public class CodeGenerator {
 		String instr = "";
 		
 		instr += emit(ast.left);
+		
+		instr += pushStack(1);
+		instr += makeCode(MOVE, RegRef(ast.left.reg), Mem(SP + "@"));
 		instr += emit(ast.right);
+		instr += makeCode(MOVE, MemRef(SP + "@"), Reg(ast.left.reg));
+		instr += popStack(1);
 		
 		int LReg = ast.left.reg;
 		int RReg = ast.right.reg;
@@ -566,50 +573,50 @@ public class CodeGenerator {
 			instr += makeCode(sub_t, RegRef(LReg), RegRef(RReg), Reg(comp));
 			instr += makeCode(JMPN, RegRef(comp), ExpLabel);
 			instr += makeCode(MOVE, Value(0), Reg(newReg)); 
-			instr += makeCode(JMP, ExpLabel+"EXIT");
+			instr += makeCode(JMP, "EXIT"+ExpLabel);
 			instr += makeCode(LAB, ExpLabel);
 			instr += makeCode(MOVE, Value(1), Reg(newReg));
-			instr += makeCode(LAB, ExpLabel+"EXIT");
+			instr += makeCode(LAB, "EXIT"+ExpLabel);
 			break;
 		case GT:
 			comp = newRegister();
 			instr += makeCode(sub_t, RegRef(RReg), RegRef(LReg), Reg(comp));
 			instr += makeCode(JMPN, RegRef(comp), ExpLabel);
 			instr += makeCode(MOVE, Value(0), Reg(newReg)); 
-			instr += makeCode(JMP, ExpLabel+"EXIT");
+			instr += makeCode(JMP, "EXIT"+ExpLabel);
 			instr += makeCode(LAB, ExpLabel);
 			instr += makeCode(MOVE, Value(1), Reg(newReg));
-			instr += makeCode(LAB, ExpLabel+"EXIT");
+			instr += makeCode(LAB, "EXIT"+ExpLabel);
 			break;
 		case LTEQ:
 			comp = newRegister();
 			instr += makeCode(sub_t, RegRef(RReg), RegRef(LReg), Reg(comp));
 			instr += makeCode(JMPN, RegRef(comp), ExpLabel);
 			instr += makeCode(MOVE, Value(1), Reg(newReg)); 
-			instr += makeCode(JMP, ExpLabel+"EXIT");
+			instr += makeCode(JMP, "EXIT"+ExpLabel);
 			instr += makeCode(LAB, ExpLabel);
 			instr += makeCode(MOVE, Value(0), Reg(newReg));
-			instr += makeCode(LAB, ExpLabel+"EXIT");
+			instr += makeCode(LAB, "EXIT"+ExpLabel);
 			break;
 		case NOTEQ:
 			comp = newRegister();
 			instr += makeCode(sub_t, RegRef(LReg), RegRef(RReg), Reg(comp));
 			instr += makeCode(JMPZ, RegRef(comp), ExpLabel);
 			instr += makeCode(MOVE, Value(1), Reg(newReg));
-			instr += makeCode(JMP, ExpLabel+"EXIT");
+			instr += makeCode(JMP, "EXIT"+ExpLabel);
 			instr += makeCode(LAB, ExpLabel);
 			instr += makeCode(MOVE, Value(0), Reg(newReg));
-			instr += makeCode(LAB, ExpLabel+"EXIT");
+			instr += makeCode(LAB, "EXIT"+ExpLabel);
 			break;
 		case EQEQ:
 			comp = newRegister();
 			instr += makeCode(sub_t, RegRef(LReg), RegRef(RReg), Reg(comp));
 			instr += makeCode(JMPZ, RegRef(comp), ExpLabel);
 			instr += makeCode(MOVE, Value(0), Reg(newReg));
-			instr += makeCode(JMP, ExpLabel+"EXIT");
+			instr += makeCode(JMP, "EXIT"+ExpLabel);
 			instr += makeCode(LAB, ExpLabel);
 			instr += makeCode(MOVE, Value(1), Reg(newReg));
-			instr += makeCode(LAB, ExpLabel+"EXIT");
+			instr += makeCode(LAB, "EXIT"+ExpLabel);
 			break;
 		}
 
@@ -658,7 +665,9 @@ public class CodeGenerator {
 		instr += makeCode(LAB, afterCall);
 
 		/* VR(0) is reserved for return value of call */
-		ast.reg = 0;
+		int newReg = newRegister();
+		instr += makeCode(MOVE, RegRef(0), Reg(newReg));
+		ast.reg = newReg;
 
 		/* restore SP */
 		instr += popStack(argSize + 1);
@@ -710,6 +719,7 @@ public class CodeGenerator {
 
 	private String emit(UnOpExp ast) {
 		String instr = "";
+		instr += emit(ast.exp);
 		int reg = ast.exp.reg;
 		int newReg = newRegister();
 
@@ -814,7 +824,7 @@ public class CodeGenerator {
 		else
 			instr += makeCode(READF, Mem(MemRef(RegRef(newReg))));
 
-		instr += makeCode(LAB, fname + "EXIT");
+		instr += makeCode(LAB, "EXIT" + fname);
 
 		/* change current SP to FP */
 		instr += makeCode(MOVE, FP + "@", SP);
@@ -844,7 +854,7 @@ public class CodeGenerator {
 		instr += makeCode(ADD, Value(-2), FP + "@", Reg(newReg));
 		instr += makeCode(WRITE, MemRef(RegRef(newReg)));
 
-		instr += makeCode(LAB, fname + "EXIT");
+		instr += makeCode(LAB, "EXIT" + fname);
 
 		/* change current SP to FP */
 		instr += makeCode(MOVE, FP + "@", SP);

@@ -368,7 +368,7 @@ class TypeAnalyzer {
 						}
 
 						boolean paramArray;
-						if (pl.slist.get(i).array > 0)
+						if (pl.slist.get(i).array == 0)
 							paramArray = false;
 						else
 							paramArray = true;
